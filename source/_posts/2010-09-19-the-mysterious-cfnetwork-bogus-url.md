@@ -1,0 +1,17 @@
+--- 
+categories: 
+  - iPhone
+comments: true
+layout: post
+published: true
+status: publish
+tags: 
+  - CFNetwork
+  - gfwinterceptor
+  - iPhone
+title: "神秘的 CFNETWORK_BOGUS_URL"
+type: post
+---
+之所以说 CFNETWORK_BOGUS_URL 是个神秘的东西，首先是因为如果你试着 google 一下这个东西的话，在本篇文章和 GFWInterceptor 的代码被索引到之前只有<a href="http://www.google.com/search?client=safari&amp;rls=en&amp;q=CFNETWORK_BOGUS_URL&amp;ie=UTF-8&amp;oe=UTF-8" target="_blank">一个结果</a>, 如果使用 mobilesubstrate 观察 CFHTTPMessageCreateRequest 的调用情况的话，会发现有些应用会在发送正式的 Http 请求之前创建一个 URL 为 “CFNETWORK_BOGUS_URL" 的神秘 HTTP 请求，这样的无效地址经过观察会在 CFNetwork  库经过内部处理不会直接发送出去，事实上如果你直接用这个字符串试图新建一个 NSURLRequest 系统会直接告诉你这是一个 Invalid URL 而创建失败。
+
+这篇 “文章” 很短，很无趣吧？是的，但是我们发现了一个以前没人注意到的东西，不是吗？

@@ -1,0 +1,162 @@
+--- 
+categories: 
+  - iOS
+comments: true
+layout: post
+published: true
+status: publish
+tags: 
+  - iOS
+  - "OpenGL ES"
+title: "OpenGL ES 00 – 建立Xcode项目"
+type: post
+---
+<p>原作：Simon Maurice</p>
+
+<p>江湖中曾经流传过 Simon Maurice 大侠的一个 OpenGL ES 系列教程，此系列一出即被无数人视为珍宝，堪称是 OpenGL ES 界的葵花宝典。经过不知道多少个年头的传承，这本宝典终于……失传了（其实应该是 Simon Maurice 的出版商不准他再把内容发在 blog 上了）。我准备在这边翻译 Simon Maurice 的这个系列。是的，当时就是这样。</p>
+
+<p>其实在 Xcode 里建立一个 iPhone 上的 OpenGL ES 项目是一件易如反掌的事情，尤其是现在 Apple 在 SDK 中已经自带了 OpenGL ES 的模板。我们只需要一个能让我们快速、方便地添加代码的地方，这也就是这个教程里我们要做的事情。</p>
+
+<p>说实话，如果你只是想早点上手后续的 OpenGL 教程的话，那你完全可以跳过这篇文章。这么做不会有什么问题，因为反正这里也不会深入解释细节的东西。直接拖到这篇教程的底部下载项目文件就好了。</p>
+
+<p>打开 Xcode ，创建一个新项目。选择“OpenGL ES Application”模板（图1）。</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/01011.png" alt="0101.png" title="0101.png" border="0" width="456" height="336" />
+图1</p>
+
+<p>我假定你已经看过模板代码并且也已经把应用程序跑起来了。现在我们要做的就是把那个屏幕上那个上下跳动的正方形去掉，然后在我们的视图中加入深度缓冲（“真‧3D”效果）。嗯，这样我们的这篇教程还是有点东西可以写写的吧。</p>
+
+<h3>3D空间里的2D</h3>
+
+<p>就像 Apple 提供的这个模板一样，很多 OpenGL 的教程刚开始时都不涉及深度，它们通常用系统的(X, Y)二维坐标，而不是用更加标准的(X, Y, Z)三维坐标。Apple 的这个模板里就只用了(X, Y)坐标，因为丫没用深度！</p>
+
+<p>这种其实叫作正交投影。但我们教程是围绕着 3D 展开的，所以我不想讲正交投影的相关内容；说不定以后会说到，不过谁知道呢，现在我们还是说说 3D 的那些事儿吧。</p>
+
+<h3>启用深度缓冲</h3>
+
+<p>我们首先要做的事情是启用深度缓冲。Apple 的那个正方形本来就是个 2D 对象所以它也不需要深度缓冲。但是我们是需要的，所以我们得启用它。Apple 已经提供了建立深度缓冲的方法，我们就直接用吧。</p>
+
+<p>打开 EAGLView.m 文件，找到下面这行：</p>
+
+<pre>#define USE_DEPTH_BUFFER 0</pre>
+
+<p>你懂的，把 0 改成 1 吧。然后 createFrameBuffer 方法里面的代码就创建深度缓冲去了。我知道也许你有一些疑问，不过我的建议是别那么早开始怀疑人生，这是 Apple 写的方法，我们直接拿来用就行了。</p>
+
+<p>现在我们要在 OpenGL 中启用深度测试了。我们会创建一个方法，通过一次调用来让视图完成这个任务。创建一个 setupView 方法，然后在里面插入下列代码：</p>
+
+<pre>- (void)setupView {
+	const GLfloat zNear = 0.1, zFar = 1000.0, fieldOfView = 60.0;
+	GLfloat size;
+	glEnable(GL_DEPTH_TEST);
+	glMatrixMode(GL_PROJECTION);
+	size = zNear * tanf(DEGREES_TO_RADIANS(fieldOfView) / 2.0);
+	// This give us the size of the iPhone display
+	CGRect rect = self.bounds;
+	glFrustumf(-size, size, -size / (rect.size.width / rect.size.height), size / (rect.size.width / rect.size.height), zNear, zFar);
+	glViewport(0, 0, rect.size.width, rect.size.height);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+}</pre>
+
+<p>这段代码创建了一个<strong>视区</strong>，对应到我们实际的屏幕大小。之前说过了我们不会做深度解读，我们就看看这一行：</p>
+
+<pre>glEnable(GL_DEPTH_TEST);</pre>
+
+<p>这行代码打开了 OpenGL 中的<strong>深度测试</strong>。记住，如果你在 OpenGL 中“开”了某个东西，当你不再用的时候需要相应地“关”掉它。现在我们开了深度测试并且不准备关掉它，于是这么写就行了。</p>
+
+<pre>glClearColor(0.0f, 0.0f, 0.0f, 1.0f);</pre>
+
+<p>我们在这里定义了用什么样的颜色来清除屏幕。OpenGL ES 中的所有颜色都是 RGBA 值（也就是红、绿、蓝、透明度）。是的张总，RGB 值不管用的，不不，27寸的 iMac 都不管用。所以接下去当我们清除屏幕的时候，OpenGL ES 知道这货是个黑色。如果我们不改变这个值，OpenGL ES 将继续使用这个颜色。</p>
+
+<p>颜色的取值可以是一个 0 -&gt; 1 的浮点数，或者是一个 0 -&gt; 255 的无符号字节数。值越高，颜色的强度也越高。</p>
+
+<p>回到文件顶部的 #define 部分，我们还需要在这边加入一个宏，这是刚才的 setupView 方法用到的。</p>
+
+<pre>#define USE_DEPTH_BUFFER 1
+#define DEGREES_TO_RADIANS(__ANGLE) ((__ANGLE) / 180.0 * M_PI)</pre>
+
+<h3>绘制视图 - 绘图方法</h3>
+
+<p>往下看 drawView 这个方法，在我们的教程中这就是见证奇迹的地方，当然 Apple 给这方法取的名字已经够显而易见了。</p>
+
+<p>首先，删掉这个方法中的所有东西，然后换成下面的代码：</p>
+
+<pre>- (void)drawView {
+	[EAGLContext setCurrentContext:context];
+	glBindFramebufferOES(GL_FRAMEBUFFER_OES, viewFramebuffer);
+	glViewport(0, 0, backingWidth, backingHeight);
+	glBindRenderbufferOES(GL_RENDERBUFFER_OES, viewRenderbuffer);
+	[context presentRenderbuffer:GL_RENDERBUFFER_OES];
+}</pre>
+
+<p>前三行用于建立我们的绘图空间。后面两行将我们的绘图空间和屏幕上的空间做一个交换。如果你之间做过动画或者是游戏方面的编程的话，你就知道这是传说中的“双缓冲”。</p>
+
+<p>向不明真相的群众解释一下，双缓冲意味着我们创建了两个一致的缓冲：一个展示给用户看，另一个是让我们绘图的。当我们完成了绘制任务之后，我们交换这两个视图，于是用户就看到了新绘制的视图。之所以这么折腾的，是为了让动画能平滑显示。</p>
+
+<p>现在我们不准备加入新的代码来显示东西了，我们把剩下的一些设置完成。</p>
+
+<p>首先，在 dealloc 方法之前，插入如下代码：</p>
+
+<pre>- (void)checkGLError:(BOOL)visibleCheck {
+	GLenum error = glGetError();
+	switch (error) {
+		case GL_INVALID_ENUM:
+			NSLog(@"GL Error: Enum argument is out of range");
+			break;
+		case GL_INVALID_VALUE:
+			NSLog(@"GL Error: Numeric value is out of range");
+			break;
+		case GL_INVALID_OPERATION:
+			NSLog(@"GL Error: Operation illegal in current state");
+			break;
+		case GL_STACK_OVERFLOW:
+			NSLog(@"GL Error: Command would cause a stack overflow");
+			break;
+		case GL_STACK_UNDERFLOW:
+			NSLog(@"GL Error: Command would cause a stack underflow");
+			break;
+		case GL_OUT_OF_MEMORY:
+			NSLog(@"GL Error: Not enough memory to execute command");
+			break;
+		case GL_NO_ERROR:
+			if (visibleCheck) {
+				NSLog(@"No GL Error");
+			}
+			break;
+		default:
+			NSLog(@"Unknown GL Error");
+			break;
+	}
+}</pre>
+
+<p>OpenGL 有一个检测错误的方法（glGetError()），不过返回的错误代码需要手工转化成可读的消息。这也就是我们在上面这个方法里所做的事情。</p>
+
+<p>布尔值的参数 “visibleCheck” 放在那里只是为了让你知道这个方法被调用了，然后一切正常没有错误。</p>
+
+<p>我们要做的最后一件事情是转到 initWithCoder 方法然后调用一下我们之前创建的 setupView 方法。在方法末尾加入如下代码：</p>
+
+<pre>[self setupView];</pre>
+
+<p>当然我们也可以把 setupView 方法里的代码直接放到 initWithCoder 里面而不需要创建一个新的方法（这不废话嘛）。通常来说这段代码只会被调用一次。</p>
+
+<h3>CADisplayLink</h3>
+
+<p>在 Simon Maurice 写这个教程的时候，Apple 还是用 NSTimer 来控制帧数的。从 iPhone OS 3.1 开始要求使用 CADisplayLink 的方法。NSTimer 只作为 3.1 以下系统的妥协做法。我修改了模板文件加入了 CADisplayLink 的支持。</p>
+
+<p>好了，搞定 EAGLView.m ，切到 EAGLView.h 看看。
+
+<h3>EAGLView.h</h3>
+
+<p>呃，这边没啥要做的。我们只需加入两个方法声明就好了。</p>
+
+<pre>- (void)setupView;
+- (void)checkGLError:(BOOL)visibleCheck;</pre>
+
+<p>于是，这篇教程就华丽丽地结束了。</p>
+
+<h3>下一步</h3>
+
+<p>如果你在模拟中编译运行这段代码，你会看到，屏幕上，什么也没有（坑爹嘛这不是！）。不过在下个教程中，我们将开始绘制一些基本图形，点、线、三角形什么的最喜欢了。</p>
+
+<p>嗯，想要下载项目文件的人们，这就是了：</p>
+
+<p><a href="https://dl.dropbox.com/s/fu8bxmvn0inrhdj/AppleCoder-OpenGLES-00.zip?dl">AppleCoder-OpenGLES-00.zip </a></p>

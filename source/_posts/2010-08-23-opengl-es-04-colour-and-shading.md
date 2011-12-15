@@ -1,0 +1,139 @@
+--- 
+categories: 
+  - iOS
+comments: true
+layout: post
+published: true
+status: publish
+tags: 
+  - iOS
+  - "OpenGL ES"
+title: "OpenGL ES 04 - 颜色和明暗处理"
+type: post
+---
+<p>原作： Simon Maurice</p>
+
+<p>就像我上次说的那样，白色的物体看多了也就腻味了，所以是时候给它们点颜色瞧瞧了。各位看官一定要留心这次内容，因为这次我介绍的一些内容在纹理贴图那也能用得上（好吧，我们真的很快就会讲到纹理贴图了呀）。</p>
+
+<p>OpenGL ES 中的颜色可以是一个单色的色块，也可以是带有明暗处理的多种颜色混在一起形成的渐变。单一颜色的情况比较简单，所以我们先来说说这个。</p>
+
+<p>改变颜色会让 OpenGL 进入一个“状态”，这和 OpenGL 中的其它东西一样。改好颜色之后，所有后续的绘图操作都会用这个颜色来上色，即便是我们调用 glLoadIndentity() 来“复位”状态也无济于事（因为 glLoadIdentity() 实际上只对顶点数据有效果）。所以，只要加一行代码，我们就能让我们的物体有颜色了。现在对我来说只要不是什么颜色都好，要么我就弄个蓝色吧。</p>
+
+<p>打开 Xcode，直奔 drawView 方法。在第一个 glLoadIdentity() 的后面加上如下方法调用：</p>
+
+<pre>glLoadIdentity();
+glColor4f(0.0, 0.0, 0.8, 1.0);</pre>
+
+<p>我们用 glColor4f() 告诉 OpenGL，绘图（及填充）颜色为蓝色。这个方法调用的参数为：</p>
+
+<pre>glColor4f(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);</pre>
+
+<p>在 OpenGL ES 中，所有颜色必需像这样由四个参数（RGBA）组成，RGB 在这边用不上。颜色的 alpha 值指的就是透明度，1.0 表示完全不透明，而 0.0 表示完全透明。</p>
+
+<p>同时，红、绿和蓝的参数则是从 0.0 到 1.0 的浮点数，0.0 表示颜色强度最低，而 1.0 表示颜色强度最高。所以白色表示出来就是 (1.0, 1.0, 1.0, 1.0)。</p>
+
+<p>加上这行了之后点“Build and Go”。围观一下来自于阿凡达的三角形和正方形：</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/0401.jpg" alt="0401.jpg" title="0401.jpg" border="0" width="370" height="239" /></p>
+
+<p>怎么样，比白色好点了吧？不过其实也就好了那么一点点而已。Apple 自带模板里的那个渐变的色彩要炫多了，所以我们也来看看该怎么实现那样的效果吧。</p>
+
+<h3>多种颜色</h3>
+
+<p>给一个物体加上多种颜色也不算太复杂。我们需要做的就是像定义顶点数组一样另外定义一个数组，只不过这次我们告诉 OpenGL 从数组里取的是颜色。颜色数组里的每个颜色与物体顶点数组里的每个顶点相对应。</p>
+
+<p>动手做一下就明白了。看看下面的代码，我定义了一个颜色数组，这个数组和正方形的顶点数组相对应：</p>
+
+<pre>const GLfloat squareVertices[] = {
+	-1.0, 1.0, 0.0,		// Top left
+	-1.0, -1.0, 0.0,	// Bottom left
+	1.0, -1.0, 0.0,		// Bottom right
+	1.0, 1.0, 0.0		// Top right
+};
+const GLfloat squareColours[] = {
+	1.0, 0.0, 0.0, 1.0,	// Red - top left - colour for squareVertices[0]
+	0.0, 1.0, 0.0, 1.0,	// Green - bottom left - squareVertices[1]
+	0.0, 0.0, 1.0, 1.0,	// Blue - bottom right - squareVerticies[2]
+	0.5, 0.5, 0.5, 1.0	// Grey - top right- squareVerticies[3]
+};</pre>
+
+<p>你应该明白每个颜色对应一个顶点是什么意思了吧？接下来我们再加几行代码来给正方形上色：</p>
+
+<pre>glLoadIdentity();
+glTranslatef(1.5, 0.0, -6.0);
+glRotatef(rota, 0.0, 0.0, -1.0);
+glVertexPointer(3, GL_FLOAT, 0, squareVertices);
+glEnableClientState(GL_VERTEX_ARRAY);
+glColorPointer(4, GL_FLOAT, 0, squareColours);	// NEW
+glEnableClientState(GL_COLOR_ARRAY);		    // NEW
+glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+glDisableClientState(GL_COLOR_ARRAY);		    // NEW</pre>
+
+<p>我们总共加了三行新代码。不要急，一行一行来看：</p>
+
+<pre>glColorPointer(4, GL_FLOAT, 0, squareColours);</pre>
+
+<p>这行和我们建立坐标顶点数组那个函数很像。我们传进去的四个参数分别是：</p>
+
+<ol>
+	<li>颜色 - 数组中的颜色个数。</li>
+	<li>数据格式 - 我们的颜色数组中用的是 0 到 1 的浮点数，所以这里我们传一个 GL_FLOAT。当然你也可以用 0 - 255 的字节来描述颜色。</li>
+	<li>步进 - 同样的，如果我们数据中还有其它信息，那么我们用这个参数告诉 OpenGL 在两个值中跳过几个字节。</li>
+	<li>数组 - 表明我们的数据存在哪里。</li>
+</ol>
+
+<p>注意，在指定数据格式的时候，我们用的是 GL_FLOAT，这是一个枚举类型；而 GLfloat 则是一个数据类型，用于声明 OpenGL 中的浮点数。</p>
+
+<p>好了，现在我们的告诉了 OpenGL 数据是什么格式以及存在什么地方。不过，我们还需要让 OpenGL 进入使用颜色的“状态”。</p>
+
+<p>于是我们用这句： </p>
+
+<pre>glEnableClientState(GL_COLOR_ARRAY);</pre>
+
+<p>这个打开了 OpenGL 中我们所需要的状态。我们通过传一个 GL_COLOR_ARRAY 来告诉 OpenGL 这是个颜色数组。</p>
+
+<p>然后我们像之前那样画正方形。画好之后我们需要禁用颜色数组，否则下一次画三角形的时候也会有多种颜色。于是我们调用这句：</p>
+
+<pre>glDisableClientState(GL_COLOR_ARRAY);</pre>
+
+<p>这个把颜色数组从 OpenGL 的当前状态列表中移除。如果我们不这样做的话，drawView 的第一个调用会把三角形变成蓝色，而第二个调用则会用颜色数组来给三角形上色。不过由于三角形的顶点数组（triangleVertices[]）中只有三个顶点，所以它只会用颜色数组中的前三个颜色。</p>
+
+<p>给我们的方法加入新代码之后，点击“Build and Go”来看看效果：</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/0402.jpg" alt="0402.jpg" title="0402.jpg" border="0" width="367" height="205" /></p>
+
+<p>如果你愿意，你可以关掉旋转（注释掉 glRotatef() 那句）来看看正方形的顶点数组和颜色数组是怎么对应起来的。</p>
+
+<h3>明暗处理</h3>
+
+<p>注意到我们的正方形是怎么渐渐地从一种颜色变成另一种颜色的吗？OpenGL 是通过明暗处理来做到的。在 OpenGL 中有两种明暗处理模式：GL_FLAT 和 GL_SMOOTH。我们现在看到的就是默认的 GL_SMOOTH 值下的效果。</p>
+
+<p>为了看看这两者之间的区别，我们在正方形的 glLoadIdentity() 之前加入这行：</p>
+
+<pre>glShadeModel(GL_FLAT);</pre>
+
+<p>glShadeModel() 函数让 OpenGL 的状态从平滑明暗处理变成了平面明暗处理。再唐僧一句，OpenGL 改变了状态后会一直保持这个状态除非再次改变这个状态。所以我们也可以把这个调用放到 setupView。点击“Build an Go”，我们的正方形现在变成这样了：</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/04031.jpg" alt="0403.jpg" title="0403.jpg" border="0" width="367" height="170" /></p>
+
+<p>欢迎电视机前的观众朋友收看《走近科学》，接下来我们来解释下刚才发生了点什么。</p>
+
+<p>首先我们的明暗处理并没有影响到三角形所以三角形还是老样子。而对于正方形来说，你现在可以清楚地看到组成它的两个三角形。这是因为在平面明暗处理模式下，OpenGL 仅用最后一个顶点所对应的颜色来填充每个三角形，在我们例子中也就是 squareColours[2] （蓝色）和 squareColours[3] （灰色）。如果你不知道为什么这两个颜色表示每个三角形的最后一个顶点的颜色，请复习之前我们在讲基础图形时讲到的内容。</p>
+
+<p>我们再来看一遍：GL_SMOOTH 代表的是平滑明暗处理，这表示在填充正方形的时候，OpenGL 会用上我们之前在 squareColours[] 数组里定义的颜色并将其与顶点数组对应起来，然后用插值的方法来算出正方形内部每个象素点上的颜色，这样我们的颜色在四个点之间就能平滑变化的。这也就是我们之前看到的那个彩色正方形的样子。</p>
+
+<p>GL_FLAT 用的是物体最后一个顶点上的颜色来填充整个物体。我们的正方形由两个三角形组成，所以我们也看到这个正方形由不同的颜色分隔成了两半。</p>
+
+<h3>结论</h3>
+
+<p>希望今天讲的对你有点用处。在实战中我们一般就用 GL_SMOOTH 作为我们明暗处理模式。除非你想回味一下 C64 年代里那种复古的 3D。GL_SMOOTH 是默认值，所以我们不需要手动去启用。</p>
+
+<p>另外，请注意，我们在上面使用颜色数组的步骤在纹理映射的时候也会再用到的，所以再过一两节课我们就会倒回来看这节教程的。</p>
+
+<p>下一讲中我会演示一下怎么创建一个 3D 的物体，它将以平面颜色着色，不过再下一讲我们就会它换成纹理。</p>
+
+<p>好了今天的教程就是这样了，这里是代码：</p>
+
+<p><a href="https://dl.dropbox.com/s/g7abtwvb3lu3wtk/AppleCoder-OpenGLES-04.zip?dl">AppleCoder-OpenGLES-04.zip</a></p>
+
+<p>欲知后事如何，且听下回分解。</p>
