@@ -1,0 +1,63 @@
+--- 
+layout: post
+meta: 
+  _edit_last: "2"
+  _wp_old_slug: ""
+  aktt_notify_twitter: "yes"
+  aktt_tweeted: "1"
+published: true
+status: publish
+tags: 
+  - iOS
+  - iPhone
+  - Twitter
+title: "说说 Twitter for iPhone 的N宗“罪”"
+type: post
+---
+<h3>本文要说些什么</h3>
+<p>自从 iOS 上最好的 Twitter 客户端 Tweetie 2 被 Twitter Inc. 收编成为官方客户端之后，整个舆论对其的评价瞬间从满是赞扬之声变为略有微词。 很多人对 Twitter for iPhone 到 Tweetie 的各种变化表示不满：图标，Retweet 方式，出现广告 (Promoted Tweet) ，奇怪的设置菜单位置等等。 本文不准备在这里讨论这些 Tweetie 变身为官方应用后招致不满的地方，而是要说说几个 Twitter for iPhone 从 Tweetie 时代起就固有的问题。</p>
+<p> </p>
+<h3>Twitter API 调用问题</h3>
+<p>该问题可以说严重，也可以说无足轻重，但也足够严重到促使笔者写这篇文章，在所有 Twitter 客户端中目前只发现 Twitter for iPhone 有该问题。</p>
+<p>要了解该问题，首先要知道一些关于 Twitter API Limit 的背景知识，这在 Twitter 官方的 <a href="http://dev.twitter.com/pages/rate-limiting#rest" target="_blank">文档</a> 中写得非常清楚：</p>
+<ul style="color:#082d3f;background-image:initial;background-attachment:initial;background-color:#ffffff;font-size:14px;line-height:20px;list-style-type:none;margin:1em 0 1.5em 20px;padding:0;">
+<li style="background-image:url('http://s.twimg.com/a/1281662294/images/dev/bullet.png');background-attachment:initial;background-color:initial;background-position:0 6px;background-repeat:no-repeat no-repeat;margin:0;padding:0 0 0 15px;"><span style="font-family:Arial, sans-serif;">Anonymous calls are based on the IP of the host and are permitted 150 requests per hour.</span></li>
+<li style="background-image:url('http://s.twimg.com/a/1281662294/images/dev/bullet.png');background-attachment:initial;background-color:initial;background-position:0 6px;background-repeat:no-repeat no-repeat;margin:0;padding:0 0 0 15px;"><span style="font-family:Arial, sans-serif;">Basic Auth calls are permitted 150 requests per hour.</span></li>
+<li style="background-image:url('http://s.twimg.com/a/1281662294/images/dev/bullet.png');background-attachment:initial;background-color:initial;background-position:0 6px;background-repeat:no-repeat no-repeat;margin:0;padding:0 0 0 15px;"><span style="font-family:Arial, sans-serif;">OAuth calls are permitted 350 requests per hour.</span></li>
+</ul>
+<p>也就是说：如果你的程序调用 Twitter search 的 API，比如直接在命令行中运行</p>
+<pre>curl http://search.twitter.com/search.json?q=@overboming </pre>
+<p>﻿对于这类无验证，无来头的匿名 API 访问， Twitter 限制了每个 IP 访问限制为 150 次/小时。还有已经快要被 Twitter 官方抛弃的 Basic Auth 方式，标准情况下的 Limit 也为150次每秒， 当然这个数字现在正在以星期为间隔慢慢减少中。</p>
+<p>在现在 Twitter 客户端普遍采用 XAuth 验证方式的环境下，几乎所有的客户端都会在发往 Twitter 的请求附带上已经获取到的 OAuth Header，下面是一个样例</p>
+<pre>{'Authorization': '
+    OAuth
+    oauth_consumer_key="yqoymNTrS9ZDGsBnlFhIuw",
+    oauth_nonce="K5weBUvRj%2FucL3SD8wBTcfIOlho%3D",
+    oauth_signature="0pcaJEB2xUpA34Li6rVQ9IeqS6Y%3D",
+    oauth_signature_method="HMAC-SHA1",
+    oauth_timestamp="1281979736",
+    oauth_token="28954840-cYnZ2T0RDissLVg8h4hOQ9SMom5pW2rAR7m2uCI",
+    oauth_version="1.0"'}
+</pre>
+<p>对于这样的请求， twitter.com 会认出：哦，原来是你啊，欢迎回来。你要的东西在这里，你还剩下多少次 API 访问。</p>
+<pre>{'status': '200 OK', 'x-ratelimit-remaining': '329', ...
+</pre>
+<p>Twitter for iPhone 的第一宗 "罪" 即为在调用一些非帐号相关（即该请求无论由谁调用的结果都相同，不需要验证身份）的API时，会选择上文提到的第一种方法：API匿名调用。 Loren 这样的做法有它的一定道理，这些到底是一些无状态的 API，匿名是没有错的。 但是做出如此决定作者显然没有考虑很多用户在同一 IP 后的状况，如果有多个人在同一个出口 IP 访问 Twitter 的话，大家加起来访问这些 API 小时超过 150次 即为被网站无情地拒绝 :(</p>
+<p><img style="display:block;margin-left:auto;margin-right:auto;" title="twitter_iphone_fail.PNG" src="http://codeleaks.files.wordpress.com/2010/08/twitter_iphone_fail.png" border="0" alt="twitter iphone fail" width="320" height="480" /></p>
+<p>当然大家可以想象在IP地址泛滥的美帝，没有人会把这件事情当回事情，可是用 <a href="http://code.google.com/p/gfwinterceptor/">gfwinterceptor</a> 的同学们就会经常不可避免地遇到这种情况，因为 GAE 出口的IP数量到底有限，匿名的访问超上限的概率是十有八九。 如果 Twitter for iPhone 能够在发送所有请求时保证一致性地带上 Header，那样所有用户的 API Limit 都会单独分开，350次每小时的访问限制完全能满足正常的需求。目前看来，iOS 上的 Twitter 客户端中有此问题的仅此一家。类似的超上限的情况还会出现在在同一个出口IP内有大量 Twitter for iPhone用户时。</p>
+<p> </p>
+<h3>较慢的载入速度</h3>
+<p>载入较慢的第一原因即为默认载入的 Timeline 数量有点过多，像 Echofon 这样异步离线加载过早的推是个提升启动速度的好办法。</p>
+<p>Tweetie 2 应该还是最早能够支持完整的 Navigation 痕迹记录的软件，在 iOS 4.0 带来的多任务原生的保留状态特性之后，这一拖慢速度的设计是否还显得很实用呢？ 大多数人访问 Twitter 的习惯经常包括在手机和计算机之间来来回回切换，在从计算机换回手机时我们真的很在乎之前追推留下的痕迹么？个人觉得这一特性在 4.0 上已经意义不大。</p>
+<p> </p>
+<h3>漂亮背后的 Tweet 详细页面</h3>
+<p>我们在这里自己看一下 Twitter for iPhone 显示一条推详细信息的界面。很不错是吧，有图片的话会显示嵌入的图片，如果推带有 Geocode 会显示嵌入的小地图，一切都显得非常和谐。</p>
+<p><img style="display:block;margin-left:auto;margin-right:auto;" title="tweet_detail_page.PNG" src="http://codeleaks.files.wordpress.com/2010/08/tweet_detail_page1.png" border="0" alt="tweet_detail_page.PNG" width="320" height="480" /></p>
+<p>那么这一个像是详细信息的界面是如何实现的呢？按住推上的文字部分，会出现熟悉的放大镜，试着点击右上角的上下箭头反动前后的推，就会发现有些非常难受的地方：上下翻动的动画会先完成，但是显示的仍然是上一条的内容，过一小会应该显示的内容才会载入。</p>
+<p>至此答案就清楚了：作者 "偷懒" 地在这里使用了 Webview 来实现某条推详细信息的显示。如果说这种实现方法有什么缺点的话，就是一个字，慢。 作者在这里加入时间很长的翻动效果主要就是为了掩饰以后再切换显示的 html 页面的内容的方式给人以不一致的体验。在其它一些客户端，比如 echofon 里就没有该问题，翻动上下推都是瞬间的事情。</p>
+<h3>薄弱的 Twitter List 支持</h3>
+<p>善用List的人几乎会把它当作第二个 Timeline, Twitter for iPhone的List实现显然已经不能满足List重度用户的胃口。问题有两个：1. 没有List内容的本地缓存，每次都要去下载 2. 调用切换不便。相信贴上两张图就高下立分，上图为 TweetList，下图为 Twitter for iPhone。</p>
+<p><img style="display:block;margin-left:auto;margin-right:auto;" title="tweet_list_list.jpg" src="http://codeleaks.files.wordpress.com/2010/08/tweet_list_list1.jpg" border="0" alt="tweet_list_list" width="320" height="480" /> <img style="display:block;margin-left:auto;margin-right:auto;" title="twitter_list.jpg" src="http://codeleaks.files.wordpress.com/2010/08/twitter_list1.jpg" border="0" alt="4897835628_445bdec89e-1.jpg" width="320" height="480" /></p>
+<p></p>
+<h3>开发者严重不给力</h3>
+<p>这点我就不多说了，心里还是希望Loren在加盟Twitter拿了不少股权以后，无论花了多少时间，能够拿出个像样的 Twitter for iPad 和 Tweetie for Mac 2. 其实如果从 App Store 整体角度来说，Twitter for iPhone 依旧是最好的免费客户端，且没有之一。我在这里说闲话也是纯属站着说话不腰疼，就这样吧。</p>
