@@ -1,0 +1,274 @@
+--- 
+categories: 
+  - iOS
+comments: true
+layout: post
+published: true
+status: publish
+tags: 
+  - iOS
+  - "OpenGL ES"
+title: "OpenGL ES 03 - 变换"
+type: post
+---
+原作： Simon Maurice
+
+在之前的教程中我们学会了怎么画三角形和正方形，今天我们准备在屏幕上同时显示这两个物体。这只要在原来的基础上稍加移动就行了，而移动，正是变换的一种。
+
+在 OpenGL ES 中有三种类型的变换，分别是：
+
+<ol>
+<li>平移 - 让物体在 3D 空间中移动。</li>
+	<li>旋转 - 围绕 X, Y 或 Z 轴转动。</li>
+	<li>缩放 - 改变物体的大小。原本这个只是用在 2D 的正交投影系统中的，因为在 3D 中，物体越远（Z 值越小），它画出来也就越小。当然了，我们可以用缩放来实现些“特殊效果”。（喂，这有什么特殊的啊！）</li>
+</ol>首先我们用平移函数来把三角形和正方形同时显示在屏幕上，然后我们再接着讲另外两个函数。
+
+<h3>平移</h3>
+
+上帝说，要移动，于是便有了 glTranslatef()。看到它尾巴上的那个“f”了吗？这说明我们要传给它的是个浮点数。这并不代表你不能使用定点数了，你大可以调用 glTranslatex() 函数。定点数用在那些没有专门的浮点数运算协处理器的硬件上，不过所幸 iPhone 还是有的，所以我们尽管放心用浮点数好了。别想太多，我只是随口提一下，以免你在 Xcode 代码补全里面看到 glTranslatex() 不知道这个有什么不同而已。
+
+光说不练假把式。来，打开 Xcode ，找到你的项目。希望上次你听了我的话然后只是注释掉了画三角形的代码，否则你现在又要重新输一遍了。
+
+首先要改动的是我们定义的两个顶点数组。不过只要改 Z 坐标就行了。像下面这样把所有 Z 坐标改成 0.0：
+
+
+
+``` 
+const GLfloat triangleVertices[] = {
+	0.0, 1.0, 0.0,		// Triangle top centre
+	-1.0, -1.0, 0.0,	// bottom left
+	1.0, -1.0, 0.0		// bottom right
+};
+const GLfloat squareVertices[] = {
+	-1.0, 1.0, 0.0,		// Top left
+	-1.0, -1.0, 0.0,	// Bottom left
+	1.0, -1.0, 0.0,		// Bottom right
+	1.0, 1.0, 0.0		// Top right
+};
+```
+
+
+
+还记得为啥 Z 坐标要设成 -6.0 吗？因为我们的“相机”在 (0.0, 0.0, 0.0) 位置，所以我们得把物体往屏幕后方放。而现在我们准备用 glTranslatef() 来把它们往后放，而不再是在顶点数组里写死。
+
+接下来我们要告诉 OpenGL 要移动的是啥：是投影（世界视角）还是物体（世界中的模型）。在这个例子中，我们要移动的是三角形和正方形，所以来和 OpenGL 打声招呼吧。在 glClear() 下面调用如下函数：
+
+
+
+``` 
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+glMatrixMode(GL_MODELVIEW);
+```
+
+
+
+glMatrixMode 告诉 OpenGL 我们呆会儿要改变的是我们的顶点数组而不是投影。在 setupView 方法中，我们也调过这个函数，不过那边传的是 GL_PROJECTION 参数。我们之前说过 OpenGL 是个“状态”机，所以它会一直记得之前的“状态”，直到下一次改变状态为止。在调用 glMatrixMode(GL_MODELVIEW) 之间我们的<strong>模型模式</strong>一直是 GL_PROJECTION。现在我们把它改成 GL_MODELVIEW，那么直到下次我们再做改变，它会一直保持 GL_MODELVIEW 这个值。
+
+其实如果我们追求最高性能的话我们可以把这个调用放到 setupView 的末尾。不过在这个教程里就别那么认真了，古话说得好，认真你就输了……
+
+对，我确实没讲过投影模式下的 OpenGL ES，所以上面的话如果你听不懂也别在意。我们现在学的目的就在于把物体画在屏幕上，然后不断去折腾它们。
+
+把画三角形部分的注释去掉：
+
+
+
+``` 
+glVertexPointer(3, GL_FLOAT, 0, triangleVertices);
+glEnableClientState(GL_VERTEX_ARRAY);
+glDrawArrays(GL_TRIANGLES, 0, 3);
+```
+
+
+
+在这三行代码前面，加上两行新的代码：
+
+
+
+``` 
+glLoadIdentity();
+glTranslatef(-1.5, 0.0, -6.0);
+glVertexPointer(3, GL_FLOAT, 0, triangleVertices);
+glEnableClientState(GL_VERTEX_ARRAY);
+glDrawArrays(GL_TRIANGLES, 0, 3);
+```
+
+
+
+glLoadIdentity() 这个函数可以让所有的变换都复位。如果我们不调这个函数的话，glTranslatef() 就会不停地的把物体往左、往后移，直把它们移出屏幕外面。其实有更好的方法可以代替 glLoadIdentity() 的，不过这个留到后面再说吧。
+
+接下来就是用来变身，呃，变换的方法啦。
+
+我们的 glTranslatef() 接受三个参数：
+
+
+
+``` 
+glTranslatef(GLfloat xtrans, GLfloat ytrans, GLfloat Ztrans);
+```
+
+
+
+来，再来复习一遍之前我画的那张 3D 世界的图吧。
+
+<img src="http://codeleaks.files.wordpress.com/2010/08/0301.jpg" alt="0301.jpg" title="0301.jpg" border="0" width="456" height="400">
+
+记住，“相机”的位置在 (0.0, 0.0, 0.0)。所以我们实际调用的时候传的参数分别是：
+
+
+
+``` 
+xtrans = -1.5
+ytrans =  0.0
+ztrans = -6.0
+```
+
+
+
+还有一件事情不知道你记不记得，就是当我们在画正方形和三角形的时候，它们都是出现在屏幕正中的。所以如果现在我们还是按照之前的方法来画的话，它们就会重叠在一起。
+
+为了不让他们叠在一起，我把三角形的 X 坐标往左移 1.5。根据上面那张坐标系统的图，左边为负值，所以实际上就是 -1.5。
+
+而 Z 轴上的 -6.0 则代替了我们之前写在顶点数组里的 -6.0。
+
+于是我们就把三角形往左移了 1.5，往后移了 6.0。
+
+<h3>继续看正方形</h3>
+
+正方形部分的代码和三角形几乎是一样的：
+
+
+
+``` 
+glLoadIdentity();
+glTranslatef(1.5, 0.0, -6.0);
+glVertexPointer(3, GL_FLOAT, 0, squareVertices);
+glEnableClientState(GL_VERTEX_ARRAY);
+glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+```
+
+
+
+只不过这一次我们给 glTranslatef() 中的 xtrans 变量传一个正值来把正方形往右移。
+
+点击“Build and Go”，铛铛铛铛：
+
+<img src="http://codeleaks.files.wordpress.com/2010/08/0302.png" alt="0302.png" title="0302.png" border="0" width="386" height="742">
+
+当然 Y 坐标还是在屏幕中间的，物体的大小和之前也是一样的，只不过它们现在已经听话地并排显示了。
+
+<h3>尝试一下</h3>
+
+试着改变 glTranslatef() 中的 xtrans、 ytrans 和 ztrans 的值，看看会发生些什么。我曾经花过几个小时观察这些值的改变。同时你也可以看看把 glLoadIndentity() 注释掉会怎么样。
+
+<h3>旋转</h3>
+
+玩好之后把代码改回来，我们接着来看看旋转。目前我们只在 2D 中旋转，因为我们的物体就是 2D 的（虽然这是个 3D 的世界）。但是我向马克思发誓后面我们会画出真正的 3D 物体来的，也让它们在 3D 中转起来，对，你猜到了，我们还会给它加上纹理的……
+
+其实旋转也很简单：
+
+
+
+``` 
+glRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z); 
+```
+
+
+
+看，用 OpenGL ，就是那么自信。首先你告诉它要转多少度，然后告诉它绕着哪个轴转。
+
+我会演示两种旋转。首先是静态的旋转，然后再让它们不停地旋转来产生动画效果。
+
+先弄个简单的旋转出来吧。转到 drawView 方法里加入下面的代码：
+
+
+
+``` 
+glLoadIdentity();
+glTranslatef(-1.5, 0.0, -6.0);
+glRotatef(45.0, 0.0, 0.0, 1.0);         // Add this line
+glVertexPointer(3, GL_FLOAT, 0, triangleVertices);
+glEnableClientState(GL_VERTEX_ARRAY);
+glDrawArrays(GL_TRIANGLES, 0, 3);
+glLoadIdentity();
+glTranslatef(1.5, 0.0, -6.0);
+glRotatef(45.0, 0.0, 0.0, 1.0);         // Add this line
+glVertexPointer(3, GL_FLOAT, 0, squareVertices);
+glEnableClientState(GL_VERTEX_ARRAY);
+glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+```
+
+
+
+我们让三角形和正方形沿着 Z 轴转了 45º。看到传给 Z 的那个 1.0 吗？这告诉 OpenGL 我们的物体需要绕着 Z 轴转动。
+
+点下“Build and Run”：
+
+<img src="http://codeleaks.files.wordpress.com/2010/08/03031.jpg" alt="0303.jpg" title="0303.jpg" border="0" width="365" height="216">
+
+绕着 Z 旋转产生了一个“自转”的效果——就像我们站在汽车侧面看着轮胎转动一样。
+
+沿着 X 轴转就好像在汽车的正前方看轮胎转，而沿着 Y 轴转就好像司机打了个方向盘以免撞上你（希望如此吧！）时轮胎的转动。如果你真搞不懂那也别纠结，我们下个例子可以让你看明白旋转是怎么一回事。
+
+<h3>动起来</h3>
+
+为了让我们的物体不停地转动，我们需要在每画一帧的时候都去增加旋转角度。打开 EAGLView.h，加入这个变量：
+
+
+
+``` 
+GLfloat rota;
+```
+
+
+
+回到 EAGLView.m，在 initWithCoder 的末尾加入这个赋值语句：
+
+
+
+``` 
+rota = 0.0;
+```
+
+
+
+其实我们就是加了个变量来保存当前旋转的角度。
+
+回到 drawView 中，在我们第一次调用 glLoadIndentity() 之前加入下面这行：
+
+
+
+``` 
+rota += 0.5;
+```
+
+
+
+这样，我们每画一次物体就把角度增加 0.5º。最后，改一下我们对 glRotatef() 的调用：
+
+
+
+``` 
+glRotatef(rota, 0.0, 0.0, 1.0);
+```
+
+
+
+这样我们的物体就动起来了，第一次画的时候它们转了 0.5º，第二次就是 1.0º。
+
+点下“Build and Run”，这就是我说的从侧面看轮胎的转动。
+
+<h3>继续尝试</h3>
+
+在今天的教程结束之前，我希望你们能动手改点代码，并且观察下我们的改动会带来些什么：
+
+<ol>
+<li>改变旋转轴。把 Z 改成 0.0，然后轮流把 X 和 Y 改成 1.0，看看我们的物体分别是怎么转的。</li>
+	<li>把 1.0 改成 -1.0，看看它们是不是倒过来转了。</li>
+	<li>把 glRotatef() 中的 rota 改成 -rota，看看会发生什么？</li>
+</ol>希望通过这样的尝试可以加深你对旋转的理解。以下是本次教程的完整代码：
+
+<a href="https://dl.dropbox.com/s/wccr7b5un4aq8qx/AppleCoder-OpenGLES-03.zip?dl">AppleCoder-OpenGLES-03.zip</a>
+
+我不知道你们是怎么想的，反正我看这些白色的物体是看腻味了。所以，下次我们要给它们上颜色了。
+
+那么，下次见咯。
