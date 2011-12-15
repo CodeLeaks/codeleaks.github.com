@@ -13,15 +13,18 @@ type: post
 
 Google 了一把找到了 <a title="netgrowl" href="http://the.taoofmac.com/space/projects/netgrowl" target="_blank">netgrowl</a> 这个好东东，它是一个开源的 Python 模块，实现了 Growl 协议，可以向 Mac 或 Windows 上的 Growl 服务发送通知。使用也非常方便，先用 GrowlRegistrationPacket 函数注册一个应用，接着就可以用 GrowlNotificationPacket 发送通知了：
 
-<span style="text-decoration:underline;">notify.py</span>
-<pre>#!/usr/bin/python
+<u>notify.py</u>
+
+
+``` 
+#!/usr/bin/python
 
 from netgrowl import *
 import sys
 
 title = "Notification from Ubuntu"
 desc = ""
-if len(sys.argv) &gt; 2:
+if len(sys.argv) > 2:
     title = sys.argv[1]
     desc = sys.argv[2]
 
@@ -35,15 +38,24 @@ p = GrowlNotificationPacket(application="Ubuntu",
     description=desc, priority=1,
     sticky=True, password="i")
 s.sendto(p.payload(),addr)
-s.close()</pre>
+s.close()
+```
+
+
 这里的 addr 是接收方的地址，GrowlRegistrationPacket 和 GrowlNotificationPacket 中需要指定 Growl 远程服务的密码。
 
 然后是一个简化 notify.py 调用的 shell 脚本：
 
-<span style="text-decoration:underline;">growl.sh</span>
-<pre>#!/bin/bash
+<u>growl.sh</u>
+
+
+``` 
+#!/bin/bash
 
 cmd=$@
 $cmd
-python ~/bin/notify.py Done "$cmd under $PWD is finished"</pre>
-把 growl.sh 加入到 PATH 中，之后只要运行 <span style="text-decoration:underline;">growl.sh make all</span> 就能运行 make all 命令 ，并且在执行完成后向 Growl 客户端发送消息了。P.S. Growl for Windows 可以在<a title="这里" href="http://www.growlforwindows.com/" target="_blank">这里</a>找到。
+python ~/bin/notify.py Done "$cmd under $PWD is finished"
+```
+
+
+把 growl.sh 加入到 PATH 中，之后只要运行 <u>growl.sh make all</u> 就能运行 make all 命令 ，并且在执行完成后向 Growl 客户端发送消息了。P.S. Growl for Windows 可以在<a title="这里" href="http://www.growlforwindows.com/" target="_blank">这里</a>找到。

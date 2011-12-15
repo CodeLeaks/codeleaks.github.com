@@ -14,10 +14,19 @@ type: post
 最近在Windows上用VMware Remote Control远登虚拟机调试内核的时候，问题就出来了：可能是这个浏览器插件的bug，有时键盘的Caps Lock会被莫名打开。然后我的这个键盘键位又比较少，不想再让Caps Lock键替换另一个用得更少的按键了，于是想到了软件关闭的方法。
 
 搜了下Stackoverflow找到个很好用的Python库<a href="http://www.rutherfurd.net/python/sendkeys/">SendKeys</a>，只要两行代码就能在Windows下模拟Caps Lock按键了：
-<pre>import SendKeys
-SendKeys.SendKeys("{CAPSLOCK}")</pre>
+
+
+``` 
+import SendKeys
+SendKeys.SendKeys("{CAPSLOCK}")
+```
+
+
 另外在Linux要模拟按键，可以直接访问/dev/console：
-<pre>import fcntl
+
+
+``` 
+import fcntl
 import os
 
 KDSETLED = 0x4B32
@@ -28,5 +37,8 @@ console_fd = os.open('/dev/console', os.O_NOCTTY)
 fcntl.ioctl(console_fd, KDSETLED, 0x04)
 
 # Turn off caps lock
-fcntl.ioctl(console_fd, KDSETLED, 0)</pre>
+fcntl.ioctl(console_fd, KDSETLED, 0)
+```
+
+
 <a href="http://stackoverflow.com/questions/2171408/how-to-change-caps-lock-status-without-key-press">原问题地址</a>
