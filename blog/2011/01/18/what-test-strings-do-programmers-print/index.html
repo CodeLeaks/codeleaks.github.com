@@ -1,0 +1,259 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>当程序员打印测试字符串时，他们打印些什么？ - My Octopress Blog</title>
+  <meta name="author" content="Your Name">
+
+  
+  <meta name="description" content="这个问题的起源是一个朋友前两天发版本的时候忘了删代码里的 &#8220;fuck&#8221; 字符串，结果从服务器拉回来的 log 里一堆的脏话。而我还有个朋友在写代码的时候喜欢打印 &#8220;sucker&#8221; 或者 &#8220;shit&#8221; 之类的字符串。 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://CodeLeaks.github.com/blog/2011/01/18/what-test-strings-do-programmers-print">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="My Octopress Blog" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">My Octopress Blog</a></h1>
+  
+    <h2>A blogging framework for hackers.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:CodeLeaks.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">当程序员打印测试字符串时，他们打印些什么？</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-01-18T00:00:00+08:00" pubdate data-updated="true">Jan 18<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>这个问题的起源是一个朋友前两天发版本的时候忘了删代码里的 &#8220;fuck&#8221; 字符串，结果从服务器拉回来的 log 里一堆的脏话。而我还有个朋友在写代码的时候喜欢打印 &#8220;sucker&#8221; 或者 &#8220;shit&#8221; 之类的字符串。恰好之前我又看过 CoolShell 的<a href="http://coolshell.cn/articles/1850.html">《JavaScript 程序员嘴最脏？》</a>一文，便猜想在程序中使用脏话作注释或者测试字符串或许并不是一个特例。</p>
+
+<p>一方面为了验证这个猜想，另一方面也是好奇大家都用什么做测试字符串，昨天我在 Twitter 上提了一个问题：<a href="http://twitter.com/#!/luosheng/status/26920416706568192">「大家在写代码的时候如果要打印一个测试字符串一般会用什么？」</a></p>
+
+<p>到目前为止，一共收到 37 位推友的有效答复。个人觉得这些答案还挺有代表性的，于是就写一篇博客来总结下。顺便按答案把各位程序员归个类——不当之处还望各位海涵。 :D</p>
+
+<h3>单字符重复型</h3>
+
+
+<p>单字符重复型指的是那些输出 &#8220;aaaaaa&#8221;、&#8221;bbbbbb&#8221;、&#8221;11111&#8221; 等的程序员。含有单字符重复型的答案总共有 9 个，是程序员们选择最多的一种类型。当然这也很好理解，毕竟单字符打起来方便，而且混在其他的输出结果中也显得那么地拉风那么地有气势。</p>
+
+<h3>你好世界型</h3>
+
+
+<p>嗯，你好世界型的程序员选择的测试字符串当然是 &#8220;hello world&#8221; 了。含有 &#8220;hello world&#8221; 或者是 &#8220;hello&#8221; 的答案总共有 8 个。说实话之前没有想到程序员对 &#8220;hello world&#8221; 那么有感情——我还以为大家是只在写第一个程序的时候才用这个的。</p>
+
+<h3>老实巴交型</h3>
+
+
+<p>既然是打印测试字符串，那么输出 &#8220;test&#8221; 什么的显然就最老实不过了。含有 &#8220;test&#8221; 的答案一共有 5 个。</p>
+
+<h3>指法练习型</h3>
+
+
+<p>有两名程序员的答案是 &#8220;the quick brown fox jumps over the lazy dog&#8221;——其实这个更应该归类到「键盘测试型」中。另外还有几位程序员的答案则是基本键位上的指法练习，打印的是 &#8220;asdf&#8221; 或者 &#8220;asdfghjk&#8221;。</p>
+
+<h3>乐观向上型</h3>
+
+
+<p>乐观向上型的程序员喜欢在代码中打印各种代表笑声的字符串如 &#8220;haha&#8221;、&#8221;hehe&#8221;、&#8221;hoho&#8221;、&#8221;heihei&#8221; 等。</p>
+
+<h3>拉或不拉型</h3>
+
+
+<p>@5p3ct3r 的回答是 &#8220;lalala&#8221; 而 @localhost_8080 的回答则是 &#8220;blahblahblah&#8221;——我笑点<del>滴</del>低了。</p>
+
+<h3>失意体前屈型</h3>
+
+
+<p>@Karloku 的回答是 &#8220;orz&#8221; &#8220;orzorz&#8221; &#8220;orzotl&#8221;。</p>
+
+<h3>Forever Alone 型</h3>
+
+
+<p>这里重点要提一下的是 @overboming 的回答：<a href="http://twitter.com/#!/overboming/status/26921891675504640">「我打的是 holy shit, this should never be happening, how can that be, whatever, something has happened, ok I can see %@ 之类的..」</a>。昨天看到这个回答的时候简直是全身颤抖不能自已。一个程序员能和自己的代码进行如此深层次地沟通和交淡，这是多么不容易的事情。而在我向 @overboming 投去敬慕眼光的时候，他只是轻轻地扔回我一个 Forever Alone 的 YouTube 链接（<a href="http://www.youtube.com/watch?v=Ny5qIH7v1SQ">http://www.youtube.com/watch?v=Ny5qIH7v1SQ</a>），然后转过身继续写代码去了……</p>
+
+<p>扯淡文到此结果。不过综上可见，大家都是文明的程序员。:D 路过的读者不妨也在留言区说说看你平时都用什么作为测试字符？</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Your Name</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-01-18T00:00:00+08:00" pubdate data-updated="true">Jan 18<span>th</span>, 2011</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://CodeLeaks.github.com/blog/2011/01/18/what-test-strings-do-programmers-print/" data-via="" data-counturl="http://CodeLeaks.github.com/blog/2011/01/18/what-test-strings-do-programmers-print/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2010/10/19/change-caps-lock-state-by-software/" title="Previous Post: 软件修改Caps Lock状态">&laquo; 软件修改Caps Lock状态</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2011/03/02/send-notifications-with-netgrowl/" title="next Post: 利用 netgrowl 向 Windows / Mac OS X 发送消息">利用 netgrowl 向 Windows / Mac OS X 发送消息 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2011/03/02/send-notifications-with-netgrowl/">利用 netgrowl 向 Windows / Mac OS X 发送消息</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/01/18/what-test-strings-do-programmers-print/">当程序员打印测试字符串时，他们打印些什么？</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2010/10/19/change-caps-lock-state-by-software/">软件修改Caps Lock状态</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2010/09/19/the-mysterious-cfnetwork-bogus-url/">神秘的 CFNETWORK_BOGUS_URL</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2010/08/26/opengl-es-06-objects-in-3d/">OpenGL ES 06 - 3D 中的物体</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2012 - Your Name -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

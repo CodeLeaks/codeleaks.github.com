@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Python | My Octopress Blog]]></title>
+  <link href="http://CodeLeaks.github.com/blog/categories/python/atom.xml" rel="self"/>
+  <link href="http://CodeLeaks.github.com/"/>
+  <updated>2012-01-04T19:07:14+08:00</updated>
+  <id>http://CodeLeaks.github.com/</id>
+  <author>
+    <name><![CDATA[Your Name]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[利用 netgrowl 向 Windows / Mac OS X 发送消息]]></title>
+    <link href="http://CodeLeaks.github.com/blog/2011/03/02/send-notifications-with-netgrowl/"/>
+    <updated>2011-03-02T00:00:00+08:00</updated>
+    <id>http://CodeLeaks.github.com/blog/2011/03/02/send-notifications-with-netgrowl</id>
+    <content type="html"><![CDATA[<p>我平时用的系统是 Windows 7 和 Mac OS X，实验室项目一般都是 ssh 远登到 Ubuntu 和 Linux 上开发的。有时碰到内核和虚拟机等项目编译比较耗时，编译开始后要时不时的看一下编译任务是否完成，或者有没有中途出错，这时候如果有个通知系统就比较方便了。</p>
+
+<p>Google 了一把找到了 <a title="netgrowl" href="http://the.taoofmac.com/space/projects/netgrowl" target="_blank">netgrowl</a> 这个好东东，它是一个开源的 Python 模块，实现了 Growl 协议，可以向 Mac 或 Windows 上的 Growl 服务发送通知。使用也非常方便，先用 GrowlRegistrationPacket 函数注册一个应用，接着就可以用 GrowlNotificationPacket 发送通知了：</p>
+
+<p><u>notify.py</u></p>
+
+<p>```</p>
+
+<h1>!/usr/bin/python</h1>
+
+<p>from netgrowl import *
+import sys</p>
+
+<p>title = "Notification from Ubuntu"
+desc = ""
+if len(sys.argv) > 2:</p>
+
+<pre><code>title = sys.argv[1]
+desc = sys.argv[2]
+</code></pre>
+
+<p>addr = ("10.131.251.101", GROWL_UDP_PORT)
+s = socket(AF_INET,SOCK_DGRAM)
+p = GrowlRegistrationPacket(application="Ubuntu", password="i")
+p.addNotification("Ubuntu Notifications", enabled=True)
+s.sendto(p.payload(), addr)
+p = GrowlNotificationPacket(application="Ubuntu",</p>
+
+<pre><code>notification="Ubuntu Notifications", title=title,
+description=desc, priority=1,
+sticky=True, password="i")
+</code></pre>
+
+<p>s.sendto(p.payload(),addr)
+s.close()
+```</p>
+
+<p>这里的 addr 是接收方的地址，GrowlRegistrationPacket 和 GrowlNotificationPacket 中需要指定 Growl 远程服务的密码。</p>
+
+<p>然后是一个简化 notify.py 调用的 shell 脚本：</p>
+
+<p><u>growl.sh</u></p>
+
+<p>```</p>
+
+<h1>!/bin/bash</h1>
+
+<p>cmd=$@
+$cmd
+python ~/bin/notify.py Done "$cmd under $PWD is finished"
+```</p>
+
+<p>把 growl.sh 加入到 PATH 中，之后只要运行 <u>growl.sh make all</u> 就能运行 make all 命令 ，并且在执行完成后向 Growl 客户端发送消息了。P.S. Growl for Windows 可以在<a title="这里" href="http://www.growlforwindows.com/" target="_blank">这里</a>找到。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[软件修改Caps Lock状态]]></title>
+    <link href="http://CodeLeaks.github.com/blog/2010/10/19/change-caps-lock-state-by-software/"/>
+    <updated>2010-10-19T00:00:00+08:00</updated>
+    <id>http://CodeLeaks.github.com/blog/2010/10/19/change-caps-lock-state-by-software</id>
+    <content type="html"><![CDATA[<p>我经常使用的几台电脑中的Caps Lock键都被我改成了Ctrl键，这样修改以后用起Emacs来就顺手多了。</p>
+
+<p>最近在Windows上用VMware Remote Control远登虚拟机调试内核的时候，问题就出来了：可能是这个浏览器插件的bug，有时键盘的Caps Lock会被莫名打开。然后我的这个键盘键位又比较少，不想再让Caps Lock键替换另一个用得更少的按键了，于是想到了软件关闭的方法。</p>
+
+<p>搜了下Stackoverflow找到个很好用的Python库<a href="http://www.rutherfurd.net/python/sendkeys/">SendKeys</a>，只要两行代码就能在Windows下模拟Caps Lock按键了：</p>
+
+<p><code>
+import SendKeys
+SendKeys.SendKeys("{CAPSLOCK}")
+</code></p>
+
+<p>另外在Linux要模拟按键，可以直接访问/dev/console：</p>
+
+<p>```
+import fcntl
+import os</p>
+
+<p>KDSETLED = 0x4B32</p>
+
+<p>console_fd = os.open('/dev/console', os.O_NOCTTY)</p>
+
+<h1>Turn on caps lock</h1>
+
+<p>fcntl.ioctl(console_fd, KDSETLED, 0x04)</p>
+
+<h1>Turn off caps lock</h1>
+
+<p>fcntl.ioctl(console_fd, KDSETLED, 0)
+```</p>
+
+<p><a href="http://stackoverflow.com/questions/2171408/how-to-change-caps-lock-status-without-key-press">原问题地址</a></p>
+]]></content>
+  </entry>
+  
+</feed>

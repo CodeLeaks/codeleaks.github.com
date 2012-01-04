@@ -1,0 +1,830 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>My Octopress Blog</title>
+  <meta name="author" content="Your Name">
+
+  
+  <meta name="description" content="原作： Simon Maurice 严格地说起来，正方形可不是 OpenGL ES 中的基础图形。不过，画这东西也不比画三角形麻烦啊。在这一篇教程中，我们将利用上一篇里的代码，把三角形变成一个正方形。同样的我们是静态地渲染出图形，但是很快我们会涉及到形变的内容哦（移来移去的）。 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://CodeLeaks.github.com/blog/page/2">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="My Octopress Blog" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">My Octopress Blog</a></h1>
+  
+    <h2>A blogging framework for hackers.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:CodeLeaks.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/08/17/opengl-es-02-drawing-primitives-2-squares/">OpenGL ES 02 - 绘制基础图形2 - 正方形</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-08-17T00:00:00+08:00" pubdate data-updated="true">Aug 17<span>th</span>, 2010</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>原作： Simon Maurice</p>
+
+<p>严格地说起来，正方形可不是 OpenGL ES 中的基础图形。不过，画这东西也不比画三角形麻烦啊。在这一篇教程中，我们将利用上一篇里的代码，把三角形变成一个正方形。同样的我们是静态地渲染出图形，但是很快我们会涉及到形变的内容哦（移来移去的）。而且只要我们做好了正方形，我们就能做正方体了，然后就是有纹理映射的正方体……呃又说远了。</p>
+
+<h3>前情回顾及本篇提要</h3>
+
+
+<p>上一讲，我们在“空白的画布”上画出了一个实心三角形。我们创建了一个顶点数组，用 glVertextPointer() 告诉 OpenGL 数据和格式，让 OpenGL 进入渲染顶点数组的状态，然后就用 glDrawArrays() 渲染出三角形。</p>
+
+<p>今天我们要接着用这个代码来画个正方形。其实我们也仅需更换几行代码而已。首先，也是最明显的，我们要定义 4 个点而不是画三角形时的 3 个。然后我们传另一个绘图模式的参数给 glDrawArrays()，这样 OpenGL 就能画出不一样的东西了。</p>
+
+<p>说改咱就改呀，风风火火一声吼。</p>
+
+<h3>定义正方形的顶点</h3>
+
+
+<p>打开上节教程的 Xcode 项目，转到 drawView 方法。注释掉 triangleVertices[] 常量——不过别删了，我们在后面讲形变的时候还用得上——然后加入下列代码：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>const GLfloat squareVertices[] = {
+</span><span class='line'>  -1.0, 1.0, -6.0,            // Top left
+</span><span class='line'>  -1.0, -1.0, -6.0,           // Bottom left
+</span><span class='line'>  1.0, -1.0, -6.0,            // Bottom right
+</span><span class='line'>  1.0, 1.0, -6.0              // Top right
+</span><span class='line'>};
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这就是正方形了。看到我们是以逆时针顺序定义的没？</p>
+
+<p>然后往下看到函数中间，注释掉画三角形的代码，同样的后面我们还会再用到这段代码的所以别删掉。注释掉 glVertexArray()、 glEnableClientState() 及 glDrawArrays() 这三个方法调用然后加入下列代码：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glVertexPointer(3, GL_FLOAT, 0, squareVertices);
+</span><span class='line'>glEnableClientState(GL_VERTEX_ARRAY);
+</span><span class='line'>glDrawArrays(GL_TRIANGLE_FAN, 0, 4);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>还是那三个函数，只不过有些细微的区别。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glVertexPointer(3, GL_FLOAT, 0, squareVertices);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这边的唯一区别是告诉 OpenGL 使用另外一组顶点数据，我们现在要画正方形而不是三角形了。</p>
+
+<p>glEnableClientState() 还是一样的，我们告诉 OpenGL 我们要用顶点数组来绘图了（而不是颜色数组或者别的什么奇怪的东西）。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glDrawArrays(GL_TRIANGLE_FAN, 0, 4);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最大的改动就是这边。在上个教程中，我们第一个参数传的是 GL_TRIANGLES ，第三个参数传的是 3 。还记得第二个参数表示的是数组中的偏移量吗？在这里仍然是 0 ，因为我们的顶点数组只包含了正方形的顶点信息。</p>
+
+<p>第一个参数是绘图模式。我们已经见过两个了。我想花点时间讲一下绘图模式之间的区别。OpenGL 中的绘图模式有：</p>
+
+<ul>
+<li>GL_POINTS</li>
+    <li>GL_LINES</li>
+    <li>GL_LINE_LOOP</li>
+    <li>GL_LINE_STRIP</li>
+    <li>GL_TRIANGLES</li>
+    <li>GL_TRIANGLE_STRIP</li>
+    <li>GL_TRIANGLE_FAN</li>
+</ul>
+
+
+<p>由于我们还没讲到点和线，所以现在我们主要看下最后的三个。在我开始之前，我想说的是在一个顶点数组中可以有不止一个三角形，所以虽然目前我们在一个数组中仅描述一个对象，但实际上用起来并没有这种限制。</p>
+
+<p>GL_TRIANGLES - 传这个参数表示 OpenGL 以 3 个顶点一组来遍历我们的数组。所以，数组中的前三个顶点将组成一个三角形，然后是接下去的三个，直到数组末尾。</p>
+
+<p>GL_TRIANGLE_STRIP - OpenGL 先是使用头两个顶点，然后对于后继顶点，它都将和之前的两个顶点一起组成三角形。也就是，对于 squareVertices[6~8] 来说，它将和 squareVertices[0~2] 和 squareVertices[3~5] 组成三角形。对于 squareVertices[9~11] ，它将同 squareVertices[3~5] 及 squareVertices[6~8] 合体。以此类推。</p>
+
+<p>注意，上边写的 squareVertices[0~2] 实际上指的是：</p>
+
+<ul>
+<li>squareVertices[0] - X 坐标 </li>
+<li>squareVertices[1] - Y 坐标 </li>
+<li>squareVertices[2] - Z 坐标 </li>
+</ul>
+
+
+<p>如果这样的解释不给力的话，我会在后面用例子来说明。</p>
+
+<p>GL_TRIANGLE_FAN - 在头两个顶点之后，每个后继顶点将与前一个以及第一个顶点一起组成一个三角形。也就是说，对 squareVertices[6~8] 来说，它将与 squareVertices[3~5] （前一个）以及 squareVertices[0~2] （第一个）合体。</p>
+
+<p>由于我们用的是 GL_TRIANGLES_FAN ，我们可以在屏幕上看到一个正方形。点击“Build &amp; Go”，你成功了：</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/0201.png" alt="0201.png" title="0201.png" border="0" width="386" height="742"></p>
+
+<p>现在回过头来看看我们的顶点数组。想象一下正方形是怎么样由三角形拼出来的。OpenGL 是这样渲染的：</p>
+
+<ul>
+<li>三角形顶点 1: squareVertices[0~2] —— 正方形左上角 </li>
+<li>三角形顶点 2: squareVertices[3~5] —— 正方形左下角 </li>
+<li>三角形顶点 3: squareVertices[6~8] —— 正方形右下角 </li>
+</ul>
+
+
+<p>OpenGL 用上面的 3 个点画一个三角形，这组成了正方形的左下半边。想象下这个正方形由一条从左上角到右下角的对角线分开，这样不就变成两个三角形了吗？OpenGL 先画了左下半边这个三角形。</p>
+
+<p>注意，上边写的 squareVertices[0~2] 实际上指的是：</p>
+
+<ul>
+<li>squareVertices[0] - X 坐标 </li>
+<li>squareVertices[1] - Y 坐标 </li>
+<li>squareVertices[2] - Z 坐标 </li>
+</ul>
+
+
+<p>然后是：</p>
+
+<ul>
+<li>三角形顶点 1: squareVertices[9~11] —— 正方形右下角 </li>
+<li>三角形顶点 2: squareVertices[6~8] —— 前一个顶点，左下角 </li>
+<li>三角形顶点 3: squareVertices[0~2] —— 第一个顶点，左上角 </li>
+</ul>
+
+
+<p>只往里面加入了一个新的点，OpenGL 就能画出完整的正方形来了。</p>
+
+<h3>GL_TRIANGLE_STRIP</h3>
+
+
+<p>回到代码里，把 glDrawArrays() 的第一个参数从 GL_TRIANGLE_FAN 改成 GL_TRIANGLE_STRIP：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>点击“Build &amp; Go”然后你就会看到如下的图案：</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/0202.jpg" alt="0202.jpg" title="0202.jpg" border="0" width="372" height="175"></p>
+
+<p>我们来看一下为什么改了一个绘图模式就没有画成正方形了。OpenGL 是以下面这种方法来处理我们的顶点数据的。</p>
+
+<ul>
+<li>三角形顶点 1: squareVertices[0~2] —— 左上 </li>
+<li>三角形顶点 2: squareVertices[3~5] —— 左下 </li>
+<li>三角形顶点 3: squareVertices[6~8] —— 右下 </li>
+</ul>
+
+
+<p>OpenGL 用前三个点画了一个三角形，也就是正方形的左下半边，这与前一个例子一样。</p>
+
+<ul>
+<li>三角形顶点 1: squareVertices[9~11] —— 右上 </li>
+<li>三角形顶点 2: squareVertices[6~8] —— 前一个顶点，右下 </li>
+<li>三角形顶点 3: squareVertices[6~8] —— 再前一个顶点，左下 </li>
+</ul>
+
+
+<p>OpenGL 用这三个顶点画了一个三角形出来。在我们的例子中，这和我们想要拼成正方形的三角形比起来正好旋转了一个90º 。</p>
+
+<p>如果我们稍微改下我们的顶点数组，我们还是可以用 GL_TRIANGLE_STRIP 来画出一个正确的正方形的。记住我们的绘图方法和顶点数组需要相匹配，否则就像我们从 FAN 改成 STRIP 那样会有奇怪的结果哦。</p>
+
+<p>我们像下面这样改下顶点数组，记住我们现在用的是 GL_TRIANGLE_STRIP 绘图模式：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>const GLfloat stripSquare[] = {
+</span><span class='line'>  -1.0, -1.0, -6.0,               // bottom left
+</span><span class='line'>  1.0, -1.0, -6.0,                // bottom right
+</span><span class='line'>  -1.0, 1.0, -6.0,                // top left
+</span><span class='line'>  1.0, 1.0, -6.0                  // top right
+</span><span class='line'> };
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>换好代码之后，前三个点组成第一个三角形，如下所示：</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/0203.png" alt="0203.png" title="0203.png" border="0" width="400" height="400"></p>
+
+<p>现在通过指定右上的顶点后（P4），它将同左上顶点（P3）以及再前面一个右下顶点（P2）一同组成三角形。新的顶点以橙色、绿色和红色表示（原文中确实写的是顶点，可 Simon 大神您画的这是边吧！）：</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/02041.png" alt="0204.png" title="0204.png" border="0" width="400" height="400"></p>
+
+<p>我们的最终产物同样是个正方形。所以，没什么不同的，只要记住，绘图模式和提供的顶点信息之间相互匹配就可以了。</p>
+
+<h3>最后…</h3>
+
+
+<p>三角形和正方形你都已经见过了。还剩下点和线没讲。这两个都很简单，我们会在后面提到。然后下一次我们也会给现在画出来的东西填上颜色。</p>
+
+<p>一旦填上了颜色，我们就要让它们动起来了，然后就把纹理什么的贴在它们身上，嗯哼。当然这不会是 Doom 3 ，不过你也能开始创建 3D 的对象了啊。到那时候我会开始讲 3D 世界的。</p>
+
+<p>这里是源代码：</p>
+
+<p><a href="https://dl.dropbox.com/s/fmxjn4kqpn6o2s2/AppleCoder-OpenGLES-02.zip?dl">AppleCoder-OpenGLES-02.zip</a></p>
+
+<p>那么，下次见咯。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/08/17/opengl-es-01-drawing-primitives-1-triangles/">OpenGL ES 01 - 绘制基础图形1 - 三角形</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-08-17T00:00:00+08:00" pubdate data-updated="true">Aug 17<span>th</span>, 2010</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>原作： Simon Maurice</p>
+
+<p>基础图形就是组成复杂对象的基础对象。在 OpenGL ES 中基础图形包括了点、线以及三角线。那啥，大家都知道它们长啥样吧？</p>
+
+<p>我们直接从代码入手吧。当我们知道这些是怎么回事了之后就可以开始写自己的代码了。</p>
+
+<h3>基础图形#1 ——— 三角形</h3>
+
+
+<p>三角形是基础图形里最“复杂”的一个了，不过到处都用得着，而且用起来也很方便。三角形应该是你画的第一个 OpenGL 基础图形。绘制的时候，我们只需要告诉 OpenGL 表示三角形的三个顶点坐标，然后它就欢快地渲染去了。</p>
+
+<p>我们接着上次的 OpenGL ES 00 教程开始吧，或者你也可以在这里下载代码：<a href="https://dl.dropbox.com/s/fu8bxmvn0inrhdj/AppleCoder-OpenGLES-00.zip?dl">AppleCoder-OpenGLES-00.zip</a>。在 Xcode 中打开项目，然后直接找到 EAGLView.m 文件中的 drawView 方法。让我们再重复下刘谦同学的那句话吧：这是见证奇迹的时刻！</p>
+
+<p>首先我们得把三角形定义出来。在 OpenGL 中有两种坐标：模型坐标和世界坐标。模型坐标指的是我们要画的这个图形的实际坐标，而世界坐标则告诉 OpenGL 模型坐标相对于观察者来说在哪（观察者在世界坐标中总是在 (0.0, 0.0, 0.0) 位置）。</p>
+
+<p>我们的第一个例子正好可以演示这一点。首先我们用 3 个 3D 的 (X, Y, Z) 坐标来定义三角形：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>const GLfloat triangleVertices[] = {
+</span><span class='line'>  0.0, 1.0, -6.0,  // Triangle top centre
+</span><span class='line'>  -1.0, -1.0, -6.0,// bottom left
+</span><span class='line'>  1.0, -1.0, -6.0, // bottom right
+</span><span class='line'>};</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意，我们定义的这 3 个点是以逆时针顺序描述的。当然你也可以改用顺时针的顺序来定义，但是我们必须保证它们顺序的一致性。我建议你开始时还是用逆时针顺序，因为在后面我们使用一些更高级的功能的时候需要这么做。</p>
+
+<p>虽然说这个系列纯粹是为了 iPhone OpenGL ES 而写，不过对于新入行的朋友们我还是简单地描述下三维坐标系统吧。看下这张图：</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/0101.jpg" alt="0101.jpg" title="0101.jpg" border="0" width="456" height="400"></p>
+
+<p>好吧我知道我画得很搓，画图什么的最讨厌了。不过模型空间或者世界空间看起来就是这张图上的样子了。想象一下这就是你的电脑屏幕，X 和 Y 分别表示横轴和纵轴，而 Z 表示的则是深度。坐标系的中心点是 (0.0, 0.0, 0.0)。</p>
+
+<p>于是看看我们在上面描述的三角形。第一个点 (0.0, 1.0, -6.0) 的位置在 Y 轴的中心点，在 X 轴上方 1 个点，然后在屏幕往后 6 个点。第二个点在 Y 轴右边 1 个点，X 轴下方 1 个点（即 Y 值为 -1.0），仍然屏幕往里 6 个点。同理适用于第三个点。</p>
+
+<p>为什么我们要把物体往后放（给其负的 Z 值）呢？是因为只有这样它才能显示出来（记住，视察者，或者说“摄像机”的位置在 (0.0, 0.0, 0.0)），否则它将无法通过 OpenGL 的深度测试，也就压根不会被渲染出来。</p>
+
+<p>有些好学的小朋友要问了：“喂，我们不是应该用模型坐标嘛，怎么你丫给的看上去是个世界坐标！”你说得没错，但是当我们渲染三角形的时候，OpenGL 会把物体放到 (0.0, 0.0, 0.0) 上，所以我们必须它放到屏幕后面使其可见。当我们往后讲到变换（移动、旋转等）后，你会发现我们并不一定要把它的 Z 值设成负数。不过在此之前还是让我们先把 Z 值设成 -6.0 吧。</p>
+
+<h3>绘图代码</h3>
+
+
+<p>我们已经能描述三角形了。接下来我们就要告诉 OpenGL 我们的数据在哪里，以及怎么样去绘制这个图形。这个也就是几行代码的事情。回到 drawView 方法中，照着下面代码实现：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)drawView {
+</span><span class='line'>  const GLfloat triangleVertices[] = {
+</span><span class='line'>      0.0, 1.0, -6.0,       // Triangle top centre
+</span><span class='line'>      -1.0, -1.0, -6.0,     // bottom left
+</span><span class='line'>      1.0, -1.0, -6.0       // bottom right
+</span><span class='line'>  };
+</span><span class='line'>  [EAGLContext setCurrentContext:context];
+</span><span class='line'>  glBindFramebufferOES(GL_FRAMEBUFFER_OES, viewFramebuffer);
+</span><span class='line'>  glViewport(0, 0, backingWidth, backingHeight);
+</span><span class='line'>  // -- BEGIN NEW CODE
+</span><span class='line'>  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+</span><span class='line'>  glVertexPointer(3, GL_FLOAT, 0, triangleVertices);
+</span><span class='line'>  glEnableClientState(GL_VERTEX_ARRAY);
+</span><span class='line'>  glDrawArrays(GL_TRIANGLES, 0, 3);
+</span><span class='line'>  // -- END NEW CODE
+</span><span class='line'>  glBindRenderbufferOES(GL_RENDERBUFFER_OES, viewRenderbuffer);
+</span><span class='line'>  [context presentRenderbuffer:GL_RENDERBUFFER_OES];
+</span><span class='line'>  [self checkGLError:NO];
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对，4 行代码就可以画出一个三角形来。让我们一行行地看这个代码，你就会发现实际上这还是很简单的。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); </span></code></pre></td></tr></table></div></figure>
+
+
+<p>这行是清除屏幕用的。我们传给 OpenGL 的控制比特位是让它用我们在 setupView 中设定的颜色（黑色）来清除屏幕以及深度缓冲。如果我们开着深度缓冲却不去清除它的话，我们的场景是显示不出来的。当然，如果我们没启用深度缓冲的话，也就没必要把 GL_DEPTH_BUFFER_BIT 传给 glClear() 了。</p>
+
+<p>于是这样我们就把之前画在缓冲上的乱七八糟的东西给擦掉了（简称我擦）。记住，我们用的是双缓冲，一个缓冲用来画，另一个用来显示。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glVertexPointer(3, GL_FLOAT, 0, triangleVertices); </span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个函数告诉 OpenGL 我们的数据在哪，以及是什么格式的。传进去的四个参数分别是：</p>
+
+<ol>
+<li>大小 - 这表示每个坐标有几个值。在我们这里就是 3 因为我们用的是 (X, Y, Z)。如果我们画的是 2D 的图且没有 Z 值的话就是 2。</li>
+    <li>数据类型 - GL_FLOAT 表示我们传的是个浮点数。你要用整数也没问题，不过这 3D 的世界就是个浮点的世界啊所以浮啊浮的你就习惯了。</li>
+    <li>步进 - 这个参数告诉 OpenGL 忽略两个坐标中间的若干字节。别想太多，现在先设成 0。这个只在我们从一个文件中载入顶点数据而数据中又有填充数据或者颜色数据时才有用。比如说像 Blender 那样的 3D 程序。</li>
+    <li>指向数据的指针 - 显而易见，数据本身。</li>
+</ol>
+
+
+<p>缓冲也清了，数据及数据格式也已经告诉 OpenGL 了，我们来看下面这个非常重要的一步：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glEnableClientState(GL_VERTEX_ARRAY);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>OpenGL 是一个“状态”机。这表示我们可以用“开启”或“禁用”命令来打开或是关闭功能。之前我们用到了 glEnable() 命令，这个影响的是 OpenGL 的“服务器端”状态。glEnableClientState() 影响的是我们自己的程序（客户端）。我们做的事情是告诉 OpenGL 我们的顶点数据是个数组，并让它开启绘制顶点的功能。当然咯，这个数组也可以是个颜色数组，这样我们就调用 glEnableClientState(GL_COLOR_ARRAY)；或者它还可以是个纹理坐标数组，这样我们就能做纹理映射了。嗯，一步步来，别一口吃成个胖子，我们得把基础内容讲完才会讲到纹理映射呢！</p>
+
+<p>随着我们对 OpenGL 的使用越来越深入，我们会用到各种不同的客户端状态，上面说的也会在使用中变得更容易理解。</p>
+
+<p>最后就是渲染三角形的命令了：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glDrawArrays(GL_TRIANGLES, 0, 3);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这就是召唤神龙的第七颗龙珠啊。OpenGL 用我们之前给它的信息在屏幕上画了个白色的三角形（白色是默认的画图颜色）。我们画出来的是一个有填充色的三角形，如果你要非填充的三角形的话还得换个方法来画。</p>
+
+<p>我们看看这个函数的三个参数吧：</p>
+
+<ol>
+<li>绘图方法 - 在这个例子中，我们传过去的 GL_TRIANGLES 参数很明显就是画三角形用的。不过到了画正方形的时候，第一个参数传什么就有讲究了。</li>
+    <li>第一个顶点 - 我们的数组仅有三个点，所以我们要让 OpenGL 从第一个点开始画起，按照访问数组的惯例，我们传了个 0 进去。如果我们的顶点数组中有多个基础图形的数据的话，我们就会在这里放上偏移量。我们在后面的教程中会讲到这一块内容，现在的话，就放个 0 吧。</li>
+    <li>顶点个数 - 告诉 OpenGL 我们的数组里有几个顶点是需要画的。在这个例子中就是 3 了。正方形是 4 ，线段是 2 (或者更多），点就是 1 或者更多（如果我们渲染多个点的话）。</li>
+</ol>
+
+
+<p>像上面这样在 drawView 方法里输好代码后，点下“Build and Go”，你的模拟器上应该和这幅图里看起来的一样：</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/0102.png" alt="0102.png" title="0102.png" border="0" width="386" height="742"></p>
+
+<p>没骗你吧，屏幕当中有个白色三角形哟。</p>
+
+<p>在我们讲其他的基础图形之前，你可以试试改变 Z 值。当把它改成 0.0 的时候你就知道我前面说的是什么意思了。屏幕上啥也没有了。</p>
+
+<p>这么一点代码我们却唠叨了半天，但我希望你能从中了解 OpenGL ES 是怎么工作的。如果你曾经尝试过上手一个“标准”的 OpenGL 教程却无法顺利地进行下去的话，我希望你可以开始看到 OpenGL 和 OpenGL ES 之间有什么区别。</p>
+
+<h3>展望</h3>
+
+
+<p>下一节的教程中我们就要来画正方形了，真是让人期待啊。如果你照着上面敲进了代码却无法跑起来的话（这多么令人沮丧啊），这里是这次教程的源代码：</p>
+
+<p><a href="https://dl.dropbox.com/s/f4ouqlufblted6l/AppleCoder-OpenGLES-01.zip?dl">AppleCoder-OpenGLES-01.zip</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/08/17/opengl-es-00-xcode-project-set-up/">OpenGL ES 00 – 建立Xcode项目</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-08-17T00:00:00+08:00" pubdate data-updated="true">Aug 17<span>th</span>, 2010</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>原作：Simon Maurice</p>
+
+<p>江湖中曾经流传过 Simon Maurice 大侠的一个 OpenGL ES 系列教程，此系列一出即被无数人视为珍宝，堪称是 OpenGL ES 界的葵花宝典。经过不知道多少个年头的传承，这本宝典终于……失传了（其实应该是 Simon Maurice 的出版商不准他再把内容发在 blog 上了）。我准备在这边翻译 Simon Maurice 的这个系列。是的，当时就是这样。</p>
+
+<p>其实在 Xcode 里建立一个 iPhone 上的 OpenGL ES 项目是一件易如反掌的事情，尤其是现在 Apple 在 SDK 中已经自带了 OpenGL ES 的模板。我们只需要一个能让我们快速、方便地添加代码的地方，这也就是这个教程里我们要做的事情。</p>
+
+<p>说实话，如果你只是想早点上手后续的 OpenGL 教程的话，那你完全可以跳过这篇文章。这么做不会有什么问题，因为反正这里也不会深入解释细节的东西。直接拖到这篇教程的底部下载项目文件就好了。</p>
+
+<p>打开 Xcode ，创建一个新项目。选择“OpenGL ES Application”模板（图1）。</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/01011.png" alt="0101.png" title="0101.png" border="0" width="456" height="336">
+图1</p>
+
+<p>我假定你已经看过模板代码并且也已经把应用程序跑起来了。现在我们要做的就是把那个屏幕上那个上下跳动的正方形去掉，然后在我们的视图中加入深度缓冲（“真‧3D”效果）。嗯，这样我们的这篇教程还是有点东西可以写写的吧。</p>
+
+<h3>3D空间里的2D</h3>
+
+
+<p>就像 Apple 提供的这个模板一样，很多 OpenGL 的教程刚开始时都不涉及深度，它们通常用系统的(X, Y)二维坐标，而不是用更加标准的(X, Y, Z)三维坐标。Apple 的这个模板里就只用了(X, Y)坐标，因为丫没用深度！</p>
+
+<p>这种其实叫作正交投影。但我们教程是围绕着 3D 展开的，所以我不想讲正交投影的相关内容；说不定以后会说到，不过谁知道呢，现在我们还是说说 3D 的那些事儿吧。</p>
+
+<h3>启用深度缓冲</h3>
+
+
+<p>我们首先要做的事情是启用深度缓冲。Apple 的那个正方形本来就是个 2D 对象所以它也不需要深度缓冲。但是我们是需要的，所以我们得启用它。Apple 已经提供了建立深度缓冲的方法，我们就直接用吧。</p>
+
+<p>打开 EAGLView.m 文件，找到下面这行：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#define USE_DEPTH_BUFFER 0</span></code></pre></td></tr></table></div></figure>
+
+
+<p>你懂的，把 0 改成 1 吧。然后 createFrameBuffer 方法里面的代码就创建深度缓冲去了。我知道也许你有一些疑问，不过我的建议是别那么早开始怀疑人生，这是 Apple 写的方法，我们直接拿来用就行了。</p>
+
+<p>现在我们要在 OpenGL 中启用深度测试了。我们会创建一个方法，通过一次调用来让视图完成这个任务。创建一个 setupView 方法，然后在里面插入下列代码：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)setupView {
+</span><span class='line'>  const GLfloat zNear = 0.1, zFar = 1000.0, fieldOfView = 60.0;
+</span><span class='line'>  GLfloat size;
+</span><span class='line'>  glEnable(GL_DEPTH_TEST);
+</span><span class='line'>  glMatrixMode(GL_PROJECTION);
+</span><span class='line'>  size = zNear * tanf(DEGREES_TO_RADIANS(fieldOfView) / 2.0);
+</span><span class='line'>  // This give us the size of the iPhone display
+</span><span class='line'>  CGRect rect = self.bounds;
+</span><span class='line'>  glFrustumf(-size, size, -size / (rect.size.width / rect.size.height), size / (rect.size.width / rect.size.height), zNear, zFar);
+</span><span class='line'>  glViewport(0, 0, rect.size.width, rect.size.height);
+</span><span class='line'>  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这段代码创建了一个<strong>视区</strong>，对应到我们实际的屏幕大小。之前说过了我们不会做深度解读，我们就看看这一行：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glEnable(GL_DEPTH_TEST);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这行代码打开了 OpenGL 中的<strong>深度测试</strong>。记住，如果你在 OpenGL 中“开”了某个东西，当你不再用的时候需要相应地“关”掉它。现在我们开了深度测试并且不准备关掉它，于是这么写就行了。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glClearColor(0.0f, 0.0f, 0.0f, 1.0f);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们在这里定义了用什么样的颜色来清除屏幕。OpenGL ES 中的所有颜色都是 RGBA 值（也就是红、绿、蓝、透明度）。是的张总，RGB 值不管用的，不不，27寸的 iMac 都不管用。所以接下去当我们清除屏幕的时候，OpenGL ES 知道这货是个黑色。如果我们不改变这个值，OpenGL ES 将继续使用这个颜色。</p>
+
+<p>颜色的取值可以是一个 0 -> 1 的浮点数，或者是一个 0 -> 255 的无符号字节数。值越高，颜色的强度也越高。</p>
+
+<p>回到文件顶部的 #define 部分，我们还需要在这边加入一个宏，这是刚才的 setupView 方法用到的。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#define USE_DEPTH_BUFFER 1
+</span><span class='line'>#define DEGREES_TO_RADIANS(__ANGLE) ((__ANGLE) / 180.0 * M_PI)</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<h3>绘制视图 - 绘图方法</h3>
+
+
+<p>往下看 drawView 这个方法，在我们的教程中这就是见证奇迹的地方，当然 Apple 给这方法取的名字已经够显而易见了。</p>
+
+<p>首先，删掉这个方法中的所有东西，然后换成下面的代码：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)drawView {
+</span><span class='line'>  [EAGLContext setCurrentContext:context];
+</span><span class='line'>  glBindFramebufferOES(GL_FRAMEBUFFER_OES, viewFramebuffer);
+</span><span class='line'>  glViewport(0, 0, backingWidth, backingHeight);
+</span><span class='line'>  glBindRenderbufferOES(GL_RENDERBUFFER_OES, viewRenderbuffer);
+</span><span class='line'>  [context presentRenderbuffer:GL_RENDERBUFFER_OES];
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>前三行用于建立我们的绘图空间。后面两行将我们的绘图空间和屏幕上的空间做一个交换。如果你之间做过动画或者是游戏方面的编程的话，你就知道这是传说中的“双缓冲”。</p>
+
+<p>向不明真相的群众解释一下，双缓冲意味着我们创建了两个一致的缓冲：一个展示给用户看，另一个是让我们绘图的。当我们完成了绘制任务之后，我们交换这两个视图，于是用户就看到了新绘制的视图。之所以这么折腾的，是为了让动画能平滑显示。</p>
+
+<p>现在我们不准备加入新的代码来显示东西了，我们把剩下的一些设置完成。</p>
+
+<p>首先，在 dealloc 方法之前，插入如下代码：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)checkGLError:(BOOL)visibleCheck {
+</span><span class='line'>  GLenum error = glGetError();
+</span><span class='line'>  switch (error) {
+</span><span class='line'>      case GL_INVALID_ENUM:
+</span><span class='line'>          NSLog(@"GL Error: Enum argument is out of range");
+</span><span class='line'>          break;
+</span><span class='line'>      case GL_INVALID_VALUE:
+</span><span class='line'>          NSLog(@"GL Error: Numeric value is out of range");
+</span><span class='line'>          break;
+</span><span class='line'>      case GL_INVALID_OPERATION:
+</span><span class='line'>          NSLog(@"GL Error: Operation illegal in current state");
+</span><span class='line'>          break;
+</span><span class='line'>      case GL_STACK_OVERFLOW:
+</span><span class='line'>          NSLog(@"GL Error: Command would cause a stack overflow");
+</span><span class='line'>          break;
+</span><span class='line'>      case GL_STACK_UNDERFLOW:
+</span><span class='line'>          NSLog(@"GL Error: Command would cause a stack underflow");
+</span><span class='line'>          break;
+</span><span class='line'>      case GL_OUT_OF_MEMORY:
+</span><span class='line'>          NSLog(@"GL Error: Not enough memory to execute command");
+</span><span class='line'>          break;
+</span><span class='line'>      case GL_NO_ERROR:
+</span><span class='line'>          if (visibleCheck) {
+</span><span class='line'>              NSLog(@"No GL Error");
+</span><span class='line'>          }
+</span><span class='line'>          break;
+</span><span class='line'>      default:
+</span><span class='line'>          NSLog(@"Unknown GL Error");
+</span><span class='line'>          break;
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>OpenGL 有一个检测错误的方法（glGetError()），不过返回的错误代码需要手工转化成可读的消息。这也就是我们在上面这个方法里所做的事情。</p>
+
+<p>布尔值的参数 “visibleCheck” 放在那里只是为了让你知道这个方法被调用了，然后一切正常没有错误。</p>
+
+<p>我们要做的最后一件事情是转到 initWithCoder 方法然后调用一下我们之前创建的 setupView 方法。在方法末尾加入如下代码：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[self setupView];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当然我们也可以把 setupView 方法里的代码直接放到 initWithCoder 里面而不需要创建一个新的方法（这不废话嘛）。通常来说这段代码只会被调用一次。</p>
+
+<h3>CADisplayLink</h3>
+
+
+<p>在 Simon Maurice 写这个教程的时候，Apple 还是用 NSTimer 来控制帧数的。从 iPhone OS 3.1 开始要求使用 CADisplayLink 的方法。NSTimer 只作为 3.1 以下系统的妥协做法。我修改了模板文件加入了 CADisplayLink 的支持。</p>
+
+<p>好了，搞定 EAGLView.m ，切到 EAGLView.h 看看。</p>
+
+<h3>EAGLView.h</h3>
+
+
+<p>呃，这边没啥要做的。我们只需加入两个方法声明就好了。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)setupView;
+</span><span class='line'>- (void)checkGLError:(BOOL)visibleCheck;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>于是，这篇教程就华丽丽地结束了。</p>
+
+<h3>下一步</h3>
+
+
+<p>如果你在模拟中编译运行这段代码，你会看到，屏幕上，什么也没有（坑爹嘛这不是！）。不过在下个教程中，我们将开始绘制一些基本图形，点、线、三角形什么的最喜欢了。</p>
+
+<p>嗯，想要下载项目文件的人们，这就是了：</p>
+
+<p><a href="https://dl.dropbox.com/s/fu8bxmvn0inrhdj/AppleCoder-OpenGLES-00.zip?dl">AppleCoder-OpenGLES-00.zip </a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2011/03/02/send-notifications-with-netgrowl/">利用 netgrowl 向 Windows / Mac OS X 发送消息</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/01/18/what-test-strings-do-programmers-print/">当程序员打印测试字符串时，他们打印些什么？</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2010/10/19/change-caps-lock-state-by-software/">软件修改Caps Lock状态</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2010/09/19/the-mysterious-cfnetwork-bogus-url/">神秘的 CFNETWORK_BOGUS_URL</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2010/08/26/opengl-es-06-objects-in-3d/">OpenGL ES 06 - 3D 中的物体</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2012 - Your Name -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

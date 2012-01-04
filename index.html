@@ -9,7 +9,7 @@
   <meta name="author" content="Your Name">
 
   
-  <meta name="description" content=" Blog Archives Recent Posts ">
+  <meta name="description" content="我平时用的系统是 Windows 7 和 Mac OS X，实验室项目一般都是 ssh 远登到 Ubuntu 和 Linux 上开发的。有时碰到内核和虚拟机等项目编译比较耗时，编译开始后要时不时的看一下编译任务是否完成，或者有没有中途出错，这时候如果有个通知系统就比较方便了。 Google &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -65,7 +65,1858 @@
       <div class="blog-index">
   
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/03/02/send-notifications-with-netgrowl/">利用 Netgrowl 向 Windows / Mac OS X 发送消息</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-03-02T00:00:00+08:00" pubdate data-updated="true">Mar 2<span>nd</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>我平时用的系统是 Windows 7 和 Mac OS X，实验室项目一般都是 ssh 远登到 Ubuntu 和 Linux 上开发的。有时碰到内核和虚拟机等项目编译比较耗时，编译开始后要时不时的看一下编译任务是否完成，或者有没有中途出错，这时候如果有个通知系统就比较方便了。</p>
+
+<p>Google 了一把找到了 <a title="netgrowl" href="http://the.taoofmac.com/space/projects/netgrowl" target="_blank">netgrowl</a> 这个好东东，它是一个开源的 Python 模块，实现了 Growl 协议，可以向 Mac 或 Windows 上的 Growl 服务发送通知。使用也非常方便，先用 GrowlRegistrationPacket 函数注册一个应用，接着就可以用 GrowlNotificationPacket 发送通知了：</p>
+
+<p><u>notify.py</u></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#!/usr/bin/python
+</span><span class='line'>
+</span><span class='line'>from netgrowl import *
+</span><span class='line'>import sys
+</span><span class='line'>
+</span><span class='line'>title = "Notification from Ubuntu"
+</span><span class='line'>desc = ""
+</span><span class='line'>if len(sys.argv) &gt; 2:
+</span><span class='line'>    title = sys.argv[1]
+</span><span class='line'>    desc = sys.argv[2]
+</span><span class='line'>
+</span><span class='line'>addr = ("10.131.251.101", GROWL_UDP_PORT)
+</span><span class='line'>s = socket(AF_INET,SOCK_DGRAM)
+</span><span class='line'>p = GrowlRegistrationPacket(application="Ubuntu", password="i")
+</span><span class='line'>p.addNotification("Ubuntu Notifications", enabled=True)
+</span><span class='line'>s.sendto(p.payload(), addr)
+</span><span class='line'>p = GrowlNotificationPacket(application="Ubuntu",
+</span><span class='line'>    notification="Ubuntu Notifications", title=title,
+</span><span class='line'>    description=desc, priority=1,
+</span><span class='line'>    sticky=True, password="i")
+</span><span class='line'>s.sendto(p.payload(),addr)
+</span><span class='line'>s.close()</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这里的 addr 是接收方的地址，GrowlRegistrationPacket 和 GrowlNotificationPacket 中需要指定 Growl 远程服务的密码。</p>
+
+<p>然后是一个简化 notify.py 调用的 shell 脚本：</p>
+
+<p><u>growl.sh</u></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#!/bin/bash
+</span><span class='line'>
+</span><span class='line'>cmd=$@
+</span><span class='line'>$cmd
+</span><span class='line'>python ~/bin/notify.py Done "$cmd under $PWD is finished"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>把 growl.sh 加入到 PATH 中，之后只要运行 <u>growl.sh make all</u> 就能运行 make all 命令 ，并且在执行完成后向 Growl 客户端发送消息了。P.S. Growl for Windows 可以在<a title="这里" href="http://www.growlforwindows.com/" target="_blank">这里</a>找到。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/01/18/what-test-strings-do-programmers-print/">当程序员打印测试字符串时，他们打印些什么？</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-01-18T00:00:00+08:00" pubdate data-updated="true">Jan 18<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>这个问题的起源是一个朋友前两天发版本的时候忘了删代码里的 &#8220;fuck&#8221; 字符串，结果从服务器拉回来的 log 里一堆的脏话。而我还有个朋友在写代码的时候喜欢打印 &#8220;sucker&#8221; 或者 &#8220;shit&#8221; 之类的字符串。恰好之前我又看过 CoolShell 的<a href="http://coolshell.cn/articles/1850.html">《JavaScript 程序员嘴最脏？》</a>一文，便猜想在程序中使用脏话作注释或者测试字符串或许并不是一个特例。</p>
+
+<p>一方面为了验证这个猜想，另一方面也是好奇大家都用什么做测试字符串，昨天我在 Twitter 上提了一个问题：<a href="http://twitter.com/#!/luosheng/status/26920416706568192">「大家在写代码的时候如果要打印一个测试字符串一般会用什么？」</a></p>
+
+<p>到目前为止，一共收到 37 位推友的有效答复。个人觉得这些答案还挺有代表性的，于是就写一篇博客来总结下。顺便按答案把各位程序员归个类——不当之处还望各位海涵。 :D</p>
+
+<h3>单字符重复型</h3>
+
+
+<p>单字符重复型指的是那些输出 &#8220;aaaaaa&#8221;、&#8221;bbbbbb&#8221;、&#8221;11111&#8221; 等的程序员。含有单字符重复型的答案总共有 9 个，是程序员们选择最多的一种类型。当然这也很好理解，毕竟单字符打起来方便，而且混在其他的输出结果中也显得那么地拉风那么地有气势。</p>
+
+<h3>你好世界型</h3>
+
+
+<p>嗯，你好世界型的程序员选择的测试字符串当然是 &#8220;hello world&#8221; 了。含有 &#8220;hello world&#8221; 或者是 &#8220;hello&#8221; 的答案总共有 8 个。说实话之前没有想到程序员对 &#8220;hello world&#8221; 那么有感情——我还以为大家是只在写第一个程序的时候才用这个的。</p>
+
+<h3>老实巴交型</h3>
+
+
+<p>既然是打印测试字符串，那么输出 &#8220;test&#8221; 什么的显然就最老实不过了。含有 &#8220;test&#8221; 的答案一共有 5 个。</p>
+
+<h3>指法练习型</h3>
+
+
+<p>有两名程序员的答案是 &#8220;the quick brown fox jumps over the lazy dog&#8221;——其实这个更应该归类到「键盘测试型」中。另外还有几位程序员的答案则是基本键位上的指法练习，打印的是 &#8220;asdf&#8221; 或者 &#8220;asdfghjk&#8221;。</p>
+
+<h3>乐观向上型</h3>
+
+
+<p>乐观向上型的程序员喜欢在代码中打印各种代表笑声的字符串如 &#8220;haha&#8221;、&#8221;hehe&#8221;、&#8221;hoho&#8221;、&#8221;heihei&#8221; 等。</p>
+
+<h3>拉或不拉型</h3>
+
+
+<p>@5p3ct3r 的回答是 &#8220;lalala&#8221; 而 @localhost_8080 的回答则是 &#8220;blahblahblah&#8221;——我笑点<del>滴</del>低了。</p>
+
+<h3>失意体前屈型</h3>
+
+
+<p>@Karloku 的回答是 &#8220;orz&#8221; &#8220;orzorz&#8221; &#8220;orzotl&#8221;。</p>
+
+<h3>Forever Alone 型</h3>
+
+
+<p>这里重点要提一下的是 @overboming 的回答：<a href="http://twitter.com/#!/overboming/status/26921891675504640">「我打的是 holy shit, this should never be happening, how can that be, whatever, something has happened, ok I can see %@ 之类的..」</a>。昨天看到这个回答的时候简直是全身颤抖不能自已。一个程序员能和自己的代码进行如此深层次地沟通和交淡，这是多么不容易的事情。而在我向 @overboming 投去敬慕眼光的时候，他只是轻轻地扔回我一个 Forever Alone 的 YouTube 链接（<a href="http://www.youtube.com/watch?v=Ny5qIH7v1SQ">http://www.youtube.com/watch?v=Ny5qIH7v1SQ</a>），然后转过身继续写代码去了……</p>
+
+<p>扯淡文到此结果。不过综上可见，大家都是文明的程序员。:D 路过的读者不妨也在留言区说说看你平时都用什么作为测试字符？</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/10/19/change-caps-lock-state-by-software/">软件修改Caps Lock状态</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-10-19T00:00:00+08:00" pubdate data-updated="true">Oct 19<span>th</span>, 2010</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>我经常使用的几台电脑中的Caps Lock键都被我改成了Ctrl键，这样修改以后用起Emacs来就顺手多了。</p>
+
+<p>最近在Windows上用VMware Remote Control远登虚拟机调试内核的时候，问题就出来了：可能是这个浏览器插件的bug，有时键盘的Caps Lock会被莫名打开。然后我的这个键盘键位又比较少，不想再让Caps Lock键替换另一个用得更少的按键了，于是想到了软件关闭的方法。</p>
+
+<p>搜了下Stackoverflow找到个很好用的Python库<a href="http://www.rutherfurd.net/python/sendkeys/">SendKeys</a>，只要两行代码就能在Windows下模拟Caps Lock按键了：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>import SendKeys
+</span><span class='line'>SendKeys.SendKeys("{CAPSLOCK}")</span></code></pre></td></tr></table></div></figure>
+
+
+<p>另外在Linux要模拟按键，可以直接访问/dev/console：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>import fcntl
+</span><span class='line'>import os
+</span><span class='line'>
+</span><span class='line'>KDSETLED = 0x4B32
+</span><span class='line'>
+</span><span class='line'>console_fd = os.open('/dev/console', os.O_NOCTTY)
+</span><span class='line'>
+</span><span class='line'># Turn on caps lock
+</span><span class='line'>fcntl.ioctl(console_fd, KDSETLED, 0x04)
+</span><span class='line'>
+</span><span class='line'># Turn off caps lock
+</span><span class='line'>fcntl.ioctl(console_fd, KDSETLED, 0)</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="http://stackoverflow.com/questions/2171408/how-to-change-caps-lock-status-without-key-press">原问题地址</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/09/19/the-mysterious-cfnetwork-bogus-url/">神秘的 CFNETWORK_BOGUS_URL</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-09-19T00:00:00+08:00" pubdate data-updated="true">Sep 19<span>th</span>, 2010</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>之所以说 CFNETWORK_BOGUS_URL 是个神秘的东西，首先是因为如果你试着 google 一下这个东西的话，在本篇文章和 GFWInterceptor 的代码被索引到之前只有<a href="http://www.google.com/search?client=safari&rls=en&q=CFNETWORK_BOGUS_URL&ie=UTF-8&oe=UTF-8" target="_blank">一个结果</a>, 如果使用 mobilesubstrate 观察 CFHTTPMessageCreateRequest 的调用情况的话，会发现有些应用会在发送正式的 Http 请求之前创建一个 URL 为 “CFNETWORK_BOGUS_URL&#8221; 的神秘 HTTP 请求，这样的无效地址经过观察会在 CFNetwork  库经过内部处理不会直接发送出去，事实上如果你直接用这个字符串试图新建一个 NSURLRequest 系统会直接告诉你这是一个 Invalid URL 而创建失败。</p>
+
+<p>这篇 “文章” 很短，很无趣吧？是的，但是我们发现了一个以前没人注意到的东西，不是吗？</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/08/26/opengl-es-06-objects-in-3d/">OpenGL ES 06 - 3D 中的物体</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-08-26T00:00:00+08:00" pubdate data-updated="true">Aug 26<span>th</span>, 2010</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>原作： Simon Maurice</p>
+
+<p>到目前为止，我们在 2D 上已经花了不少时间，是该来看看 3D 的物体了。不过 3D 物体也不是特别复杂，它们只是比 2D 需要更多顶点信息（如果你用顶点数组来创建），或者如果你是用多个正方形拼成一个正方体的话就需要多一点变换。</p>
+
+<p>其实我本来应该先把点和线讲掉的，不过，既然我们都已经能画出有颜色的三角形和有纹理的正方形了，也不急着关心那些无趣的形状了吧！</p>
+
+<p>不过我确实需要回到变换那块讲讲旋转的一些细节。然后还有就是些我之前没提到的很基本的内容……好吧，其实这只是告诉你我要写很多很多教程！（也意味着我要翻很多很多教程！）</p>
+
+<h3>开始之前，清空我们的 drawView 方法</h3>
+
+
+<p>对之前的硬编码的内容挥挥手说再见吧，这次我们要把所有东西都砍掉，然后恢复到 drawView 方法最基本的状态。</p>
+
+<p>我们的 drawView 应该是这样的：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)drawView {
+</span><span class='line'>  // Our new object definition code goes here
+</span><span class='line'>  [EAGLContext setCurrentContext:context];
+</span><span class='line'>  glBindFramebufferOES(GL_FRAMEBUFFER_OES, viewFramebuffer);
+</span><span class='line'>  glViewport(0, 0, backingWidth, backingHeight);
+</span><span class='line'>  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+</span><span class='line'>  glMatrixMode(GL_MODELVIEW);
+</span><span class='line'>
+</span><span class='line'>  // Our new drawing code goes here
+</span><span class='line'>  glBindRenderbufferOES(GL_RENDERBUFFER_OES, viewRenderbuffer);
+</span><span class='line'>  [context presentRenderbuffer:GL_RENDERBUFFER_OES];
+</span><span class='line'>  [self checkGLError:NO];
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>掌声可以响起来了，要不是之前我就把所有东西都按着 3D 的要求弄好了现在我们就应该在弄深度缓冲什么的，还要加一堆新代码。现在上面的代码你应该已经相当熟悉了。</p>
+
+<h3>定义 3D 对象</h3>
+
+
+<p>我们要弄一个正方体出来，因为这东西在 3D 图形中很常见，而且旋转起来的效果也很带感。当然在画正方体之前，我们得知道 3D 的正方体是由 6 个正方形组成的，而正方形则是我们一直用到现在的。这边的定义其实很简单，不过我来把它分解开来。首先看看正面：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>const GLfloat cubeVertices[] = {
+</span><span class='line'>  // Define the front face
+</span><span class='line'>  -1.0, 1.0, 1.0,     // top left
+</span><span class='line'>  -1.0, -1.0, 1.0,    // bottom left
+</span><span class='line'>  1.0, -1.0, 1.0,     // bottom right
+</span><span class='line'>  1.0, 1.0, 1.0,      // top right</span></code></pre></td></tr></table></div></figure>
+
+
+<p>基本上就和原始的正方形定义一样，只不过我把这个面往前提了一个单位。在教程末尾我会解释这是为什么的。接下来是顶面：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// Top face
+</span><span class='line'>-1.0, 1.0, -1.0,  // top left (at rear)
+</span><span class='line'>-1.0, 1.0, 1.0,       // bottom left (at front)
+</span><span class='line'>1.0, 1.0, 1.0,        // bottom right (at front)
+</span><span class='line'>1.0, 1.0, -1.0,       // top right (at rear)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意，我在画顶面的时候不仅顺序和正面一样（从背面看过去都是逆时针方向），而且连起始点也是一样的。如果最后我们把整个正方体绕 X 轴转 90º 的话那么顶面就变成正面了。我们定义的第一个点是左上顶点，然后是左下顶点，依次类推。</p>
+
+<p>接下来，背面：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// Rear face
+</span><span class='line'>1.0, 1.0, -1.0,       // top right (when viewed from front)
+</span><span class='line'>1.0, -1.0, -1.0,  // bottom right
+</span><span class='line'>-1.0, -1.0, -1.0, // bottom left
+</span><span class='line'>-1.0, 1.0, -1.0,  // top left</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意到顶点顺序以及起始点的一致性了吗？我们在剩下的几个面里都这么干：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// Bottom Face
+</span><span class='line'>-1.0, -1.0, 1.0,  // Bottom left front
+</span><span class='line'>1.0, -1.0, 1.0,       // right front
+</span><span class='line'>1.0, -1.0, -1.0,  // right rear
+</span><span class='line'>-1.0, -1.0, -1.0, // left rear</span></code></pre></td></tr></table></div></figure>
+
+
+<p>没错，还是一样的顺序和一样的起始点。想象下把这个面转到正面后顶点是怎么排列的。</p>
+
+<p>最后就是左面和右面：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// Left face
+</span><span class='line'>-1.0, 1.0, -1.0,  // top left
+</span><span class='line'>-1.0, 1.0, 1.0,       // top right
+</span><span class='line'>-1.0, -1.0, 1.0,  // bottom right
+</span><span class='line'>-1.0, -1.0, -1.0, // bottom left
+</span><span class='line'>// Right face
+</span><span class='line'>1.0, 1.0, 1.0,        // top left
+</span><span class='line'>1.0, 1.0, -1.0,       // top right
+</span><span class='line'>1.0, -1.0, -1.0,  // right
+</span><span class='line'>1.0, -1.0, 1.0        // left
+</span><span class='line'>};</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这里是正方体的完整定义：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>const GLfloat cubeVertices[] = {
+</span><span class='line'>  // Define the front face
+</span><span class='line'>  -1.0, 1.0, 1.0,     // top left
+</span><span class='line'>  -1.0, -1.0, 1.0,    // bottom left
+</span><span class='line'>  1.0, -1.0, 1.0,     // bottom right
+</span><span class='line'>  1.0, 1.0, 1.0,      // top right
+</span><span class='line'>  // Top face
+</span><span class='line'>  -1.0, 1.0, -1.0,    // top left (at rear)
+</span><span class='line'>  -1.0, 1.0, 1.0,     // bottom left (at front)
+</span><span class='line'>  1.0, 1.0, 1.0,      // bottom right (at front)
+</span><span class='line'>  1.0, 1.0, -1.0,     // top right (at rear)
+</span><span class='line'>  // Rear face
+</span><span class='line'>  1.0, 1.0, -1.0,     // top right (when viewed from front)
+</span><span class='line'>  1.0, -1.0, -1.0,    // bottom right
+</span><span class='line'>  -1.0, -1.0, -1.0,   // bottom left
+</span><span class='line'>  -1.0, 1.0, -1.0,    // top left
+</span><span class='line'>  // Bottom Face
+</span><span class='line'>  -1.0, -1.0, 1.0,    // Bottom left front
+</span><span class='line'>  1.0, -1.0, 1.0,     // right front
+</span><span class='line'>  1.0, -1.0, -1.0,    // right rear
+</span><span class='line'>  -1.0, -1.0, -1.0,   // left rear
+</span><span class='line'>  // Left face
+</span><span class='line'>  -1.0, 1.0, -1.0,    // top left
+</span><span class='line'>  -1.0, 1.0, 1.0,     // top right
+</span><span class='line'>  -1.0, -1.0, 1.0,    // bottom right
+</span><span class='line'>  -1.0, -1.0, -1.0,   // bottom left
+</span><span class='line'>  // Right face
+</span><span class='line'>  1.0, 1.0, 1.0,      // top left
+</span><span class='line'>  1.0, 1.0, -1.0,     // top right
+</span><span class='line'>  1.0, -1.0, -1.0,    // right
+</span><span class='line'>  1.0, -1.0, 1.0      // left
+</span><span class='line'>};</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果你对坐标系统还有问题的话，你得下点功夫想象一下它的形状了。如果想象不出来，那么拿张纸来，用斜 45º 的方式把物体画下来。你得知道一个 3D 的物体是什么样的。</p>
+
+<p>把 cubeVertices 的定义放在新的物体定义这一行注释下面。</p>
+
+<p>好的，现在我们需要把这东西画出来。</p>
+
+<h3>绘制正方体</h3>
+
+
+<p>最简单的办法就是用你们之前已经见过的代码来画正方体。后面我们会用一些进阶的方法（不过一旦看懂了就是简单到无法啊）来画 3D 对象。现在的话还是让我先来介绍下 3D 里的绘图。</p>
+
+<p>我们以一段“你懂的”代码来开始。在新绘图代码部分加入下列行：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glLoadIdentity();
+</span><span class='line'>glTranslatef(0.0, 0.0, -6.0);
+</span><span class='line'>glVertexPointer(3, GL_FLOAT, 0, cubeVertices);
+</span><span class='line'>glEnableClientState(GL_VERTEX_ARRAY);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这边没啥新鲜的。我们把顶点状态复位，把正方体往后移好让我们能看见，告诉 OpenGL 我们的顶点数组和格式，然后启用 OpenGL 的状态来使用它。</p>
+
+<p>接下来的代码也基本上和你之前用到的一样：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// Draw the front face in Red
+</span><span class='line'>glColor4f(1.0, 0.0, 0.0, 1.0);
+</span><span class='line'>glDrawArrays(GL_TRIANGLE_FAN, 0, 4);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>也没有什么新鲜的玩意。我们把绘制颜色改成红色，然后让 OpenGL 画我们数组中的顶点 0 到顶点 4。画好之后我们来画顶面，也就是数组中的后 4 个顶点：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// Draw the top face in green
+</span><span class='line'>glColor4f(0.0, 1.0, 0.0, 1.0);
+</span><span class='line'>glDrawArrays(GL_TRIANGLE_FAN, 4, 4);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>看一下 glDrawArrays()，如果你记得我之前说过的，你应该想得起来，第二个参数表示起始的偏移量。因为我们画的是正方体中的第二个面，所以我们要告诉 OpenGL 先加上一个 4 的偏移量（就是 cubeVertices[4]，前面 4 个顶点是正面），然后再画四个顶点。</p>
+
+<p>现在让我们来画背面：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// Draw the rear face in Blue
+</span><span class='line'>glColor4f(0.0, 0.0, 1.0, 1.0);
+</span><span class='line'>glDrawArrays(GL_TRIANGLE_FAN, 8, 4);
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>还是一样的，这次我们从 cubeVertices[8] 开始。对于后面的 3 个面也是同样的方式：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// Draw the bottom face
+</span><span class='line'>glColor4f(1.0, 1.0, 0.0, 1.0);
+</span><span class='line'>glDrawArrays(GL_TRIANGLE_FAN, 12, 4);
+</span><span class='line'>// Draw the left face
+</span><span class='line'>glColor4f(0.0, 1.0, 1.0, 1.0);
+</span><span class='line'>glDrawArrays(GL_TRIANGLE_FAN, 16, 4);
+</span><span class='line'>// Draw the right face
+</span><span class='line'>glColor4f(1.0, 0.0, 1.0, 1.0);
+</span><span class='line'>glDrawArrays(GL_TRIANGLE_FAN, 20, 4);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们所做的无外乎就是改变颜色，然后改变起始的偏移量。</p>
+
+<p>现在，点一下 “Build and Go”，你可以看到一个静止的红色正方形。如果要看到 6 个面的话，我们需要让正方体绕着所有的三个轴转起来。</p>
+
+<p>在 glLoadIdentity() 之前，加入如下赋值：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>rota += 0.5;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们的老朋友 rota 童鞋回来了。现在再来看看另一位老朋友，glRotatef()。在 glTranslatef() 后面，加入下面这行：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glRotatef(rota, 1.0, 1.0, 1.0);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>之前我们只让 glRotatef() 绕着一根轴转。现在我们让它沿着三根轴一起转。</p>
+
+<p>点下“Build and Go”，就是这个样没跑了：</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/0601.jpg" alt="0601.jpg" title="0601.jpg" border="0" width="376" height="230"></p>
+
+<p>代表 3D 物体对你表示惨无人道的欢迎。</p>
+
+<h3>怎么把纹理映射上去呢？</h3>
+
+
+<p>那啥，我们应该不满足于纯色的物体了对吧？让我们来用上节教程中的纹理，将它映射到物体的六个面上，这样子才好玩嘛。</p>
+
+<p>嗯，我们还保留了上节教程中的纹理和载入代码，所以我们要做的就是改变 drawView 方法。现在你就会意识到，只要前期工作做好了，纹理映射是多简单的一件事啊！</p>
+
+<p>首先，这是上节教程里的：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>const GLshort squareTextureCoords[] = {
+</span><span class='line'>  // Front face
+</span><span class='line'>  0, 1,       // top left
+</span><span class='line'>  0, 0,       // bottom left
+</span><span class='line'>  1, 0,       // bottom right
+</span><span class='line'>  1, 1,       // top right
+</span><span class='line'>};</span></code></pre></td></tr></table></div></figure>
+
+
+<p>只有一个面的时候上面的代码就够了，不过现在我们需要扩展一下。当然了，这也很简单。或许你觉得刚才定义正方体的时候我们保持每个面的起点和顺序都一致很死板，不过现在你就知道为什么了。</p>
+
+<p>当 OpenGL 把纹理渲染到正方体的面上的时候，由于我们跳过了一个偏移量（glDrawArrays() 里的 4、8、12 等）然后开始每个面的定义，纹理映射也会跳到相应的偏移处，找出每个面的纹理坐标。所以，要映射 6 个面，我们只要把上面的 4 个坐标再复制 5 遍就行了：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>const GLshort squareTextureCoords[] = {
+</span><span class='line'>  // Front face
+</span><span class='line'>  0, 1,       // top left
+</span><span class='line'>  0, 0,       // bottom left
+</span><span class='line'>  1, 0,       // bottom right
+</span><span class='line'>  1, 1,       // top right
+</span><span class='line'>  // Top face
+</span><span class='line'>  0, 1,       // top left
+</span><span class='line'>  0, 0,       // bottom left
+</span><span class='line'>  1, 0,       // bottom right
+</span><span class='line'>  1, 1,       // top right
+</span><span class='line'>  // Rear face
+</span><span class='line'>  0, 1,       // top left
+</span><span class='line'>  0, 0,       // bottom left
+</span><span class='line'>  1, 0,       // bottom right
+</span><span class='line'>  1, 1,       // top right
+</span><span class='line'>  // Bottom face
+</span><span class='line'>  0, 1,       // top left
+</span><span class='line'>  0, 0,       // bottom left
+</span><span class='line'>  1, 0,       // bottom right
+</span><span class='line'>  1, 1,       // top right
+</span><span class='line'>  // Left face
+</span><span class='line'>  0, 1,       // top left
+</span><span class='line'>  0, 0,       // bottom left
+</span><span class='line'>  1, 0,       // bottom right
+</span><span class='line'>  1, 1,       // top right
+</span><span class='line'>  // Right face
+</span><span class='line'>  0, 1,       // top left
+</span><span class='line'>  0, 0,       // bottom left
+</span><span class='line'>  1, 0,       // bottom right
+</span><span class='line'>  1, 1,       // top right
+</span><span class='line'>};</span></code></pre></td></tr></table></div></figure>
+
+
+<p>连郭敬明老师都表示这毫无压力！</p>
+
+<p>现在我们需要的就是几行绘图代码，然后就可以画出我们的纹理映射过的正方形了：</p>
+
+<p>在画第一个面之前，加入下列代码：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glTexCoordPointer(2, GL_SHORT, 0, squareTextureCoords);
+</span><span class='line'>glEnableClientState(GL_TEXTURE_COORD_ARRAY);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>就是这么简单。别删掉每段绘制代码中的 glColour4f()，点一下 “Build and Go” 就可以看到了：</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/0602.jpg" alt="0602.jpg" title="0602.jpg" border="0" width="365" height="223"></p>
+
+<p>怎么样，会动的，有纹理映射的 3D 物体！</p>
+
+<h3>关于纹理映射图像</h3>
+
+
+<p>上节教程中忘了说了，我希望你们尝试使用你们自己的纹理图片来做映射。不过很重要的一点是，纹理图片的大小应该是 2 的 N 次方。也就是说宽度和高度必须是 1、2、4……32……512、1024……宽度和高度不一定要相等，不过它们都必须是 2 的次幂。所以 32 x 512 和 64 x 64 都是合法的大小，而 30 x 30 就不是。</p>
+
+<h3>关于 glRotatef() 及你物体的顶点</h3>
+
+
+<p>再次，我希望你们去创建自己的物体。不知道你是否注意到我总是把三角形、正方形的中心点放在 0,0,0 的位置，这样物体的端点正好被 0,0,0 等分？因为在旋转的时候，OpenGL 会沿着物体的中心点来旋转，这个中心点就是我们模型矩阵中的 0,0,0。OpenGL 不会把你的模型先调整到 0,0,0 后再旋转。如果你的物体中心点不在 0,0,0，那么它转起来的时候就会“不平衡”。</p>
+
+<h3>今天就说这么多</h3>
+
+
+<p>今天的教程就要结束了。希望你觉得这个对你有所帮助，并且和我一样能感受到它的乐趣。</p>
+
+<p>说句事后诸葛亮的话，3D 物体的描述就应该按逆时针顺序来。现在先别想那么多，下次教程中我会讨论下逆时针和顺时针之间的细节。</p>
+
+<p>这里是这节教程的代码：</p>
+
+<p><a href="https://dl.dropbox.com/s/dmnyb295ufqciql/AppleCoder-OpenGLES-06.zip?dl">AppleCoder-OpenGLES-06.zip</a></p>
+
+<p>我们下次再见。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/08/25/opengl-es-05-texture-mapping-our-square/">OpenGL ES 05 - 纹理映射</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-08-25T00:00:00+08:00" pubdate data-updated="true">Aug 25<span>th</span>, 2010</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>原作： Simon Maurice</p>
+
+<p>我决定把纹理映射的内容提到前面来讲，因为相比于面体（3D 物体）来说，纹理映射只涉及到单个面，理论上要简单点。同时这貌似也是很多 iPhone OpenGL ES 程序员容易卡壳的地方。所以我决定在这节教程中来说说纹理映射那点事儿。</p>
+
+<p>之前我跳过了很多 OpenGL 的细节部分，这是为了让你们能尽早在屏幕上显示物体然后有个直观感受，而不是看些什么 OpenGL 的历史、OpenGL ES 和 OpenGL 对比之类的东西。不过今天我要讲讲之前我跳掉的这些技术细节。同时这也就意味着这会是篇很长的教程。</p>
+
+<p>我先说在前面，我们的代码主要需要做的是把纹理载入到我们的程序中，然后传给 OpenGL 引擎以让 OpenGL 能使用它。这点不复杂，只不过需要和 iPhone SDK 打些交道。</p>
+
+<h3>为纹理做准备</h3>
+
+
+<p>在我们使用纹理之前，我们需要把它载入到应用程序中来，转成 OpenGL 需要的格式，然后告诉 OpenGl 在哪里找到它。做好了这些之后，剩下的就和上节教程中的给正方形上色一样简单。</p>
+
+<p>启动 Xcode 并打开 EAGLView.h。首先我们需要加入一个 OpenGL 所需要的变量，如下所示：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>GLuint textures[1];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>很明显，这是一个长度为 1 的 GLuint 数组。之前你已经见过 GLfloat 了，而 GLuint 则是 OpenGL 中的另一个 typedef，表示无符号整数。我们最好保持用 GLxxxx 这样的 typedef，而不是用 Objective C 中的类型，因为 OpenGL 中的 typedef 是为了 OpenGL 实现而非开发环境而定义的。</p>
+
+<p>接着我们用 OpenGL 的函数 glGenTextures() 来生成这个变量。现在先记得我们定义过这个变量，后面我们会讲到 glGenTexture() 和这个变量的。</p>
+
+<p>在方法声明那里，加入如下方法声明：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)loadTexture;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们将把代码放在这个方法中来载入纹理。</p>
+
+<h3>往项目中添加 CoreGraphics 框架</h3>
+
+
+<p>为了载入然后处理纹理，我们需要往项目中添加一个 CoreGraphics 框架。它提供了所有我们需要的方法，因此我们不用像在 Windows OpenGL 教程里看到的那样自己去实现底层的代码。</p>
+
+<p>在 Xcode 的 “Groups &amp; Files” 的 “Frameworks” 处右击，然后选择 Add -> Existing Frameworks。在列表中选中 CoreGraphics.framework 后点击 “Add” 加入项目中。</p>
+
+<p>接下来我们需要添加一张纹理图片到我们的项目中。下载 checkerplate.png 然后保存到项目的目录里。右击 “Resources” 处，选择 Add -> Exisiting Files。选择我们的图片，然后它应该就会出现在我们的资源组中了。</p>
+
+<h3>把纹理载入到我们的应用程序及 OpenGL 中</h3>
+
+
+<p>切到 EAGLView.m，我们来实现 loadTexture 方法。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)loadTexture {
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>下面的代码在这个方法中都是顺序出现的，所以我们一行一行往里面填就行了。第一件事情是用下列代码把图片载入到我们的应用程序中来：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>CGImageRef textureImage = [UIImage imageNamed:@"checkerplate.png"].CGImage;
+</span><span class='line'>if (textureImage == nil) {
+</span><span class='line'>  NSLog(@"Failed to load texture image");
+</span><span class='line'>  return;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>CGImageRef 是 CoreGraphics 里的一种数据类型，它包含了所有关于图片的信息。要得到信息首先我们得用 UIImage 的类方法 imageName: 来创建一个自动释放的 UIImage 实例，UIImage 按文件名来在我们应用程序的 bundle 中找到这个文件。然后 UIImage 自动创建了 CGImageRef，我们用 CGImage 这个属性就可以访问到。</p>
+
+<p>现在我们需要取一下图片的大小，这个在后面会用上。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSInteger texWidth = CGImageGetWidth(textureImage);
+</span><span class='line'>NSInteger texHeight = CGImageGetHeight(textureImage);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>CGImageRef 数据中包含了图像的宽度和高度，不过这两个属性不能直接访问。我们需要调用上面这两个函数。</p>
+
+<p>正如 CGImageRef 名字所示，它并没有包含图像数据，而是一个指向图像数据的引用。所以我们需要分配出一块内存空间来保存我们的真实图像数据：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>GLubyte *textureData = (GLubyte *)malloc(texWidth * texHeight * 4);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>数据的大小应该是宽乘上高再乘上 4。上节我们讲到了 OpenGL 只认 RGBA 的颜色值，所以每个像素都要用 4 个字节来存储，每个字节对应 RGBA 中的一个值。</p>
+
+<p>接下来的几个函数调用看起来很壮观：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>CGContextRef textureContext = CGBitmapContextCreate(
+</span><span class='line'>  textureData,
+</span><span class='line'>  texWidth,
+</span><span class='line'>  texHeight,
+</span><span class='line'>  8, texWidth * 4,
+</span><span class='line'>  CGImageGetColorSpace(textureImage),
+</span><span class='line'>  kCGImageAlphaPremultipliedLast);
+</span><span class='line'>CGContextDrawImage(textureContext,
+</span><span class='line'>  CGRectMake(0.0, 0.0, (float)texWidth, (float)texHeight),
+</span><span class='line'>  textureImage);
+</span><span class='line'>CGContextRelease(textureContext);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>第一个函数，正如它的名字所表示的，是一个 CoreGraphics 的函数，用于返回一个 Quartz2D 的图形上下文引用。我们所做的就是告诉它纹理的数据在哪，以及纹理的格式和大小分别是什么。</p>
+
+<p>然后通过我们刚刚创建的这个图形上下文引用，我们把图像画到之前分配出来的内存空间里（textureData 指针所指向的内存）。这个上下文引用中包含所有必要的信息，让它能把数据以 OpenGL 需要的格式复制到我们用 malloc() 创建出来的空间中。</p>
+
+<p>然后和 CoreGraphics 相关的操作就告一段落了，所以我们释放掉我们创建的 textureContext 句柄。</p>
+
+<p>上面的这部分我们只是粗粗地过了一遍，因为我们对 OpenGL 这块更感兴趣些。来处理任何添加到你项目中的 PNG 格式图形纹理时，你都可以重用上面的代码。</p>
+
+<p>现在，欢迎回到 OpenGL 世界。</p>
+
+<p>还记得我们在头文件中声明的变量吗？我们准备用到它了。看看下一行代码：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glGenTextures(1, &textures[0]);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们要把纹理数据从我们的应用程序复制到 OpenGL 引擎那边，所以我们得让 OpenGL 分配出一块内存（我们不能直接分配）。还记得 texture[] 是定义成 GLuinit 的吗？当我们调用 glGenTextures 时，OpenGL 会创建一个“句柄”或者说“指针”。对于每个载入 OpenGL 的纹理都产生一个唯一的引用。OpenGL 返回什么值我们并不关心，只不过每次当我们要用 checkerplate.png 的时候我们间接地用到 textures[0]。我们知道我们实际上想要用的是什么，OpenGL 也知道。</p>
+
+<p>如果需要一次性载入多个纹理，我们就多分配点空间。比方说我们的应用程序中需要 10 个纹理，我们就这么写：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>GLuint textures[10];
+</span><span class='line'>glGenTextures(10, &textures[0]);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在这个例子中，我们只需要一个纹理，所以我们也就只分配了一个。</p>
+
+<p>接下来我们需要启用我们刚刚生成的纹理：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glBindTexture(GL_TEXTURE_2D, textures[0]);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>第二个参数很明显，就是我们刚刚创建的纹理。第一个参数总是 GL_TEXTURE_2D，因为目前所有的 OpenGL ES 都只接受这个参数。“完整的” OpenGL允许 1D 或者是 3D 的纹理，但是对 OpenGL ES 来说，这个还没提上议事日程。</p>
+
+<p>所以，记得这个是用来启用纹理的就行了。</p>
+
+<p>接着我们把我们的纹理数据（textureData 所指的）传给 OpenGL。OpenGL 在它那边（服务器端）管理纹理数据，所以数据先要根据硬件实现转成相应格式，然后再复制到 OpenGL 的空间里。这个函数各种参数传递，不过由于 OpenGL ES 的限制，大多数参数总是不变的：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们一个个地来看这些参数：</p>
+
+<ol>
+<li>目标 - 简而言之，这边总是 GL_TEXTURE_2D</li>
+    <li>级别 - 指定纹理细化的级别，0 表示所有图片允许的细节，高一点的数字表示进入第 n 级的多纹理图像简化。</li>
+    <li>内部格式 - 内部格式和下面列出的格式必须一致，所以都是 GL_RGBA。</li>
+    <li>宽度 - 图片宽度。</li>
+    <li>调试 - 图片高度。</li>
+    <li>边框 - 总是设为 0，因为 OpenGL ES 不支持纹理边框。</li>
+    <li>格式 - 必须与内部格式一致。</li>
+    <li>类型 - 每个象素的类型。还记得每个象素是四个字节吗？所以每个象素都是一个无符号字节（时刻记得 RGBA 啊）。</li>
+    <li>象素 - 指向真实图像数据的指针。</li>
+</ol>
+
+
+<p>所以虽然这边参数有点多，不过要么一直都不变，要么就是你之前已经输入过的变量（textureData，texWidth 和 texHeight）。我们要做的就是把纹理数据交给 OpenGL 去处理。</p>
+
+<p>传好数据之后，我们就可以释放 textureData 了：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>free(textureData);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>现在只剩下三个函数要调用：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+</span><span class='line'>glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+</span><span class='line'>glEnable(GL_TEXTURE_2D);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这三个调用做了这些最后的设置，然后让 OpenGL 进入了纹理映射的“状态”。</p>
+
+<p>头两个调用告诉 OpenGL 在缩放的时候如何处理纹理，放大时为 GLTEXTURE_MAG_FILTER，缩小时为 GL_TEXTURE_MIN_FILTER。要让纹理映射能正常工作，你至少需要指定这两者之一。然后两种情况下都设置了 GL_LINEAR 选项。</p>
+
+<p>然后，我们只需要调用一下 glEnable()，以便后面我们在绘制代码中能顺利地让 OpenGL 使用纹理。</p>
+
+<p>最后，我们在 initWithCoder 函数中加入这个方法的调用。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[self setupView];
+</span><span class='line'>[self loadTexture];   // Add this line
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在 setupView 方法的后面加上一行就行了。</p>
+
+<h3>drawView 的调整</h3>
+
+
+<p>脏活累活已经做完了，接下来把 drawView 方法的改变不会比前节给正方形上色难。首先，注释掉 squareColours[] 数组，因为这边我们用不上。</p>
+
+<p>现在，回忆下我们是怎么给正方形上色的。对于每个顶点我们都提供了一个颜色值。在纹理映射中，我们也要告诉 OpenGL物体中的每一个顶点应该对应到纹理中的哪一个坐标。</p>
+
+<p>在我们做这事情之前，我们需要知道纹理的坐标。纹理中的 (0, 0) 在左下角，沿着每条边数值分别从 0 过渡到 1。看看我们纹理的这张图：</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/0501.png" alt="0501.png" title="0501.png" border="0" width="350" height="380"></p>
+
+<p>回过头来看一下我们的 squareVertices[] ：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>const GLfloat squareVertices[] = {
+</span><span class='line'>  -1.0, 1.0, 0.0,     // Top left
+</span><span class='line'>  -1.0, -1.0, 0.0,    // Bottom left
+</span><span class='line'>  1.0, -1.0, 0.0,     // Bottom right
+</span><span class='line'>  1.0, 1.0, 0.0       // Top right
+</span><span class='line'>};</span></code></pre></td></tr></table></div></figure>
+
+
+<p>看到没？我们需要指定的第一个纹理坐标是左上角，也就是 (0, 1)。第二个顶点是正方形的左下角，也就是纹理坐标 (0, 0)。右下角是纹理坐标 (1, 0)，最后是右上角 (1, 1)。于是我们的 squareTextureCoods[] 应该这么写：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>const GLshort squareTextureCoords[] = {
+</span><span class='line'>  0, 1,       // top left
+</span><span class='line'>  0, 0,       // bottom left
+</span><span class='line'>  1, 0,       // bottom right
+</span><span class='line'>  1, 1        // top right
+</span><span class='line'>};</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意这边用的是 GLShort 而不是 GLfloat。把上面的代码加到你的项目中。</p>
+
+<p>和我们在颜色数组中做的事情很像吧？</p>
+
+<p>好的，现在我们需要改下绘图代码。三角形部分不管它，从画正方形之前的 glLoadIdentity() 开始。现在的绘图代码是这样的：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glLoadIdentity();
+</span><span class='line'>glColor4f(1.0, 1.0, 1.0, 1.0);      // NEW
+</span><span class='line'>glTranslatef(1.5, 0.0, -6.0);
+</span><span class='line'>glRotatef(rota, 0.0, 0.0, 1.0);
+</span><span class='line'>glVertexPointer(3, GL_FLOAT, 0, squareVertices);
+</span><span class='line'>glEnableClientState(GL_VERTEX_ARRAY);
+</span><span class='line'>glTexCoordPointer(2, GL_SHORT, 0, squareTextureCoords);     // NEW
+</span><span class='line'>glEnableClientState(GL_TEXTURE_COORD_ARRAY);                // NEW
+</span><span class='line'>glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+</span><span class='line'>glDisableClientState(GL_TEXTURE_COORD_ARRAY);               // NEW</span></code></pre></td></tr></table></div></figure>
+
+
+<p>嗯，我们有四行新的代码，然后我删了上一节教程里上色的代码。第一行调用了 glColor4f()，它的作用我们放到后面慢慢说。</p>
+
+<p>后面的三行新代码看起来应该是相当熟悉了吧。这次我们要用的不是物体的顶点，也不是颜色，我们要用的是纹理。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glTexCoordPointer(2, GL_SHORT, 0, squareTextureCoords);     // NEW
+</span><span class='line'>glEnableClientState(GL_TEXTURE_COORD_ARRAY);                // NEW</span></code></pre></td></tr></table></div></figure>
+
+
+<p>第一个调用告诉 OpenGL 我们的纹理坐标数组在哪里以及是什么格式的。和之前的区别是每个顶点有两个值（废话，这是个 2D 的纹理），然后因为我们用的 GLshort 数据类型所以这里对应地换成了 GL_SHORT。这个函数调用中没有用到步进（步进为 0），然后最后一个参数是指向我们坐标的指针。</p>
+
+<p>然后我们让 OpenGL 以刚才我们指定的坐标数组来启用纹理映射的客户端状态。</p>
+
+<p>glDrawArrays() 还是老样子，紧跟着的是这行：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glDisableClientState(GL_TEXTURE_COORD_ARRAY);               // NEW</span></code></pre></td></tr></table></div></figure>
+
+
+<p>记得上节里说过的吗？为了避免三角形受到影响，我们关掉了颜色数组。同样的，这里我们也把纹理映射关掉，否则 OpenGL 也会将纹理映射作用于三角形身上。</p>
+
+<p>点击“Build and Go”，见证奇迹的时刻：</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/05021.jpg" alt="0502.jpg" title="0502.jpg" border="0" width="368" height="209"></p>
+
+<p>我们这个网纹钢板的纹理就映射到正方形上了，而三角形还是没变。</p>
+
+<h3>进一步的实验</h3>
+
+
+<p>首先，看一下我们新加进去的 glColor4f()：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glColor4f(1.0, 1.0, 1.0, 1.0);      // NEW</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个是把绘画颜色改成了不透明的白色。不过为什么要这么做？当然咯，OpenGL 是个“状态”机，所以除非我们设了什么值，否则它将保持同一状态。（作者你这辈子就指这句话活了吧啊啊啊？）所以在我们把颜色改成白色之前它一直是蓝色。</p>
+
+<p>嗯，这是因为现在我们做纹理映射的时候，OpenGL 在我们当前的颜色（蓝色）和当前纹理象素之间做一个乘积，比方说：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>                   R    G     B    A
+</span><span class='line'>指定的颜色：          0.0, 0.0, 0.8, 1.0
+</span><span class='line'>纹理的象素颜色：      1.0, 1.0, 1.0, 1.0</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当 OpenGL 画这个象素的时候，它会做这样的乘法：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>颜色中的红色   *  象素中的红色        = 渲染颜色
+</span><span class='line'>    0.0        *     1.0              = 0.0
+</span><span class='line'>颜色中的绿色   *  象素中的绿色
+</span><span class='line'>    0.0        *     0.0              = 0.0
+</span><span class='line'>颜色中的蓝色   *  象素中的蓝色
+</span><span class='line'>    0.8        *     1.0              = 0.8</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果我们注释掉绘制代码前面的 glColor4f()，那么你应该会看到：</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/05031.jpg" alt="0503.jpg" title="0503.jpg" border="0" width="372" height="194"></p>
+
+<p>当我们设成白色的时候，我们的乘法是这样的：</p>
+
+<p>指定的颜色： 1.0, 1.0, 1.0, 1.0 乘上
+象素的颜色： 0.8, 0.8, 0.8, 1.0</p>
+
+<p>所以我们需要把颜色改成白色。</p>
+
+<h3>是的，就是这样了</h3>
+
+
+<p>这次的教程就这样了（幸好啊，否则我要翻不动了）。我知道我写了很多，不过正像我开头说的那样，实际上纹理映射的代码也不是很多，主要还是加载和设置纹理方面的东西。下次我们来说说 3D 对象的纹理映射、混色以及其他好玩的东西。</p>
+
+<p>老规矩，这里是代码。</p>
+
+<p><a href="https://dl.dropbox.com/s/uz97ngiqksicg5j/AppleCoder-OpenGLES-05.zip?dl">AppleCoder-OpenGLES-05.zip</a></p>
+
+<p>那么，下次再见咯。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/08/23/opengl-es-04-colour-and-shading/">OpenGL ES 04 - 颜色和明暗处理</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-08-23T00:00:00+08:00" pubdate data-updated="true">Aug 23<span>rd</span>, 2010</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>原作： Simon Maurice</p>
+
+<p>就像我上次说的那样，白色的物体看多了也就腻味了，所以是时候给它们点颜色瞧瞧了。各位看官一定要留心这次内容，因为这次我介绍的一些内容在纹理贴图那也能用得上（好吧，我们真的很快就会讲到纹理贴图了呀）。</p>
+
+<p>OpenGL ES 中的颜色可以是一个单色的色块，也可以是带有明暗处理的多种颜色混在一起形成的渐变。单一颜色的情况比较简单，所以我们先来说说这个。</p>
+
+<p>改变颜色会让 OpenGL 进入一个“状态”，这和 OpenGL 中的其它东西一样。改好颜色之后，所有后续的绘图操作都会用这个颜色来上色，即便是我们调用 glLoadIndentity() 来“复位”状态也无济于事（因为 glLoadIdentity() 实际上只对顶点数据有效果）。所以，只要加一行代码，我们就能让我们的物体有颜色了。现在对我来说只要不是什么颜色都好，要么我就弄个蓝色吧。</p>
+
+<p>打开 Xcode，直奔 drawView 方法。在第一个 glLoadIdentity() 的后面加上如下方法调用：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glLoadIdentity();
+</span><span class='line'>glColor4f(0.0, 0.0, 0.8, 1.0);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们用 glColor4f() 告诉 OpenGL，绘图（及填充）颜色为蓝色。这个方法调用的参数为：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glColor4f(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在 OpenGL ES 中，所有颜色必需像这样由四个参数（RGBA）组成，RGB 在这边用不上。颜色的 alpha 值指的就是透明度，1.0 表示完全不透明，而 0.0 表示完全透明。</p>
+
+<p>同时，红、绿和蓝的参数则是从 0.0 到 1.0 的浮点数，0.0 表示颜色强度最低，而 1.0 表示颜色强度最高。所以白色表示出来就是 (1.0, 1.0, 1.0, 1.0)。</p>
+
+<p>加上这行了之后点“Build and Go”。围观一下来自于阿凡达的三角形和正方形：</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/0401.jpg" alt="0401.jpg" title="0401.jpg" border="0" width="370" height="239"></p>
+
+<p>怎么样，比白色好点了吧？不过其实也就好了那么一点点而已。Apple 自带模板里的那个渐变的色彩要炫多了，所以我们也来看看该怎么实现那样的效果吧。</p>
+
+<h3>多种颜色</h3>
+
+
+<p>给一个物体加上多种颜色也不算太复杂。我们需要做的就是像定义顶点数组一样另外定义一个数组，只不过这次我们告诉 OpenGL 从数组里取的是颜色。颜色数组里的每个颜色与物体顶点数组里的每个顶点相对应。</p>
+
+<p>动手做一下就明白了。看看下面的代码，我定义了一个颜色数组，这个数组和正方形的顶点数组相对应：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>const GLfloat squareVertices[] = {
+</span><span class='line'>  -1.0, 1.0, 0.0,     // Top left
+</span><span class='line'>  -1.0, -1.0, 0.0,    // Bottom left
+</span><span class='line'>  1.0, -1.0, 0.0,     // Bottom right
+</span><span class='line'>  1.0, 1.0, 0.0       // Top right
+</span><span class='line'>};
+</span><span class='line'>const GLfloat squareColours[] = {
+</span><span class='line'>  1.0, 0.0, 0.0, 1.0, // Red - top left - colour for squareVertices[0]
+</span><span class='line'>  0.0, 1.0, 0.0, 1.0, // Green - bottom left - squareVertices[1]
+</span><span class='line'>  0.0, 0.0, 1.0, 1.0, // Blue - bottom right - squareVerticies[2]
+</span><span class='line'>  0.5, 0.5, 0.5, 1.0  // Grey - top right- squareVerticies[3]
+</span><span class='line'>};</span></code></pre></td></tr></table></div></figure>
+
+
+<p>你应该明白每个颜色对应一个顶点是什么意思了吧？接下来我们再加几行代码来给正方形上色：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glLoadIdentity();
+</span><span class='line'>glTranslatef(1.5, 0.0, -6.0);
+</span><span class='line'>glRotatef(rota, 0.0, 0.0, -1.0);
+</span><span class='line'>glVertexPointer(3, GL_FLOAT, 0, squareVertices);
+</span><span class='line'>glEnableClientState(GL_VERTEX_ARRAY);
+</span><span class='line'>glColorPointer(4, GL_FLOAT, 0, squareColours);    // NEW
+</span><span class='line'>glEnableClientState(GL_COLOR_ARRAY);          // NEW
+</span><span class='line'>glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+</span><span class='line'>glDisableClientState(GL_COLOR_ARRAY);         // NEW</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们总共加了三行新代码。不要急，一行一行来看：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glColorPointer(4, GL_FLOAT, 0, squareColours);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这行和我们建立坐标顶点数组那个函数很像。我们传进去的四个参数分别是：</p>
+
+<ol>
+<li>颜色 - 数组中的颜色个数。</li>
+    <li>数据格式 - 我们的颜色数组中用的是 0 到 1 的浮点数，所以这里我们传一个 GL_FLOAT。当然你也可以用 0 - 255 的字节来描述颜色。</li>
+    <li>步进 - 同样的，如果我们数据中还有其它信息，那么我们用这个参数告诉 OpenGL 在两个值中跳过几个字节。</li>
+    <li>数组 - 表明我们的数据存在哪里。</li>
+</ol>
+
+
+<p>注意，在指定数据格式的时候，我们用的是 GL_FLOAT，这是一个枚举类型；而 GLfloat 则是一个数据类型，用于声明 OpenGL 中的浮点数。</p>
+
+<p>好了，现在我们的告诉了 OpenGL 数据是什么格式以及存在什么地方。不过，我们还需要让 OpenGL 进入使用颜色的“状态”。</p>
+
+<p>于是我们用这句：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glEnableClientState(GL_COLOR_ARRAY);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个打开了 OpenGL 中我们所需要的状态。我们通过传一个 GL_COLOR_ARRAY 来告诉 OpenGL 这是个颜色数组。</p>
+
+<p>然后我们像之前那样画正方形。画好之后我们需要禁用颜色数组，否则下一次画三角形的时候也会有多种颜色。于是我们调用这句：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glDisableClientState(GL_COLOR_ARRAY);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个把颜色数组从 OpenGL 的当前状态列表中移除。如果我们不这样做的话，drawView 的第一个调用会把三角形变成蓝色，而第二个调用则会用颜色数组来给三角形上色。不过由于三角形的顶点数组（triangleVertices[]）中只有三个顶点，所以它只会用颜色数组中的前三个颜色。</p>
+
+<p>给我们的方法加入新代码之后，点击“Build and Go”来看看效果：</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/0402.jpg" alt="0402.jpg" title="0402.jpg" border="0" width="367" height="205"></p>
+
+<p>如果你愿意，你可以关掉旋转（注释掉 glRotatef() 那句）来看看正方形的顶点数组和颜色数组是怎么对应起来的。</p>
+
+<h3>明暗处理</h3>
+
+
+<p>注意到我们的正方形是怎么渐渐地从一种颜色变成另一种颜色的吗？OpenGL 是通过明暗处理来做到的。在 OpenGL 中有两种明暗处理模式：GL_FLAT 和 GL_SMOOTH。我们现在看到的就是默认的 GL_SMOOTH 值下的效果。</p>
+
+<p>为了看看这两者之间的区别，我们在正方形的 glLoadIdentity() 之前加入这行：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glShadeModel(GL_FLAT);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>glShadeModel() 函数让 OpenGL 的状态从平滑明暗处理变成了平面明暗处理。再唐僧一句，OpenGL 改变了状态后会一直保持这个状态除非再次改变这个状态。所以我们也可以把这个调用放到 setupView。点击“Build an Go”，我们的正方形现在变成这样了：</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/04031.jpg" alt="0403.jpg" title="0403.jpg" border="0" width="367" height="170"></p>
+
+<p>欢迎电视机前的观众朋友收看《走近科学》，接下来我们来解释下刚才发生了点什么。</p>
+
+<p>首先我们的明暗处理并没有影响到三角形所以三角形还是老样子。而对于正方形来说，你现在可以清楚地看到组成它的两个三角形。这是因为在平面明暗处理模式下，OpenGL 仅用最后一个顶点所对应的颜色来填充每个三角形，在我们例子中也就是 squareColours[2] （蓝色）和 squareColours[3] （灰色）。如果你不知道为什么这两个颜色表示每个三角形的最后一个顶点的颜色，请复习之前我们在讲基础图形时讲到的内容。</p>
+
+<p>我们再来看一遍：GL_SMOOTH 代表的是平滑明暗处理，这表示在填充正方形的时候，OpenGL 会用上我们之前在 squareColours[] 数组里定义的颜色并将其与顶点数组对应起来，然后用插值的方法来算出正方形内部每个象素点上的颜色，这样我们的颜色在四个点之间就能平滑变化的。这也就是我们之前看到的那个彩色正方形的样子。</p>
+
+<p>GL_FLAT 用的是物体最后一个顶点上的颜色来填充整个物体。我们的正方形由两个三角形组成，所以我们也看到这个正方形由不同的颜色分隔成了两半。</p>
+
+<h3>结论</h3>
+
+
+<p>希望今天讲的对你有点用处。在实战中我们一般就用 GL_SMOOTH 作为我们明暗处理模式。除非你想回味一下 C64 年代里那种复古的 3D。GL_SMOOTH 是默认值，所以我们不需要手动去启用。</p>
+
+<p>另外，请注意，我们在上面使用颜色数组的步骤在纹理映射的时候也会再用到的，所以再过一两节课我们就会倒回来看这节教程的。</p>
+
+<p>下一讲中我会演示一下怎么创建一个 3D 的物体，它将以平面颜色着色，不过再下一讲我们就会它换成纹理。</p>
+
+<p>好了今天的教程就是这样了，这里是代码：</p>
+
+<p><a href="https://dl.dropbox.com/s/g7abtwvb3lu3wtk/AppleCoder-OpenGLES-04.zip?dl">AppleCoder-OpenGLES-04.zip</a></p>
+
+<p>欲知后事如何，且听下回分解。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/08/21/opengl-es-03-transformations/">OpenGL ES 03 - 变换</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-08-21T00:00:00+08:00" pubdate data-updated="true">Aug 21<span>st</span>, 2010</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>原作： Simon Maurice</p>
+
+<p>在之前的教程中我们学会了怎么画三角形和正方形，今天我们准备在屏幕上同时显示这两个物体。这只要在原来的基础上稍加移动就行了，而移动，正是变换的一种。</p>
+
+<p>在 OpenGL ES 中有三种类型的变换，分别是：</p>
+
+<ol>
+<li>平移 - 让物体在 3D 空间中移动。</li>
+    <li>旋转 - 围绕 X, Y 或 Z 轴转动。</li>
+    <li>缩放 - 改变物体的大小。原本这个只是用在 2D 的正交投影系统中的，因为在 3D 中，物体越远（Z 值越小），它画出来也就越小。当然了，我们可以用缩放来实现些“特殊效果”。（喂，这有什么特殊的啊！）</li>
+</ol>
+
+
+<p>首先我们用平移函数来把三角形和正方形同时显示在屏幕上，然后我们再接着讲另外两个函数。</p>
+
+<h3>平移</h3>
+
+
+<p>上帝说，要移动，于是便有了 glTranslatef()。看到它尾巴上的那个“f”了吗？这说明我们要传给它的是个浮点数。这并不代表你不能使用定点数了，你大可以调用 glTranslatex() 函数。定点数用在那些没有专门的浮点数运算协处理器的硬件上，不过所幸 iPhone 还是有的，所以我们尽管放心用浮点数好了。别想太多，我只是随口提一下，以免你在 Xcode 代码补全里面看到 glTranslatex() 不知道这个有什么不同而已。</p>
+
+<p>光说不练假把式。来，打开 Xcode ，找到你的项目。希望上次你听了我的话然后只是注释掉了画三角形的代码，否则你现在又要重新输一遍了。</p>
+
+<p>首先要改动的是我们定义的两个顶点数组。不过只要改 Z 坐标就行了。像下面这样把所有 Z 坐标改成 0.0：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>const GLfloat triangleVertices[] = {
+</span><span class='line'>  0.0, 1.0, 0.0,      // Triangle top centre
+</span><span class='line'>  -1.0, -1.0, 0.0,    // bottom left
+</span><span class='line'>  1.0, -1.0, 0.0      // bottom right
+</span><span class='line'>};
+</span><span class='line'>const GLfloat squareVertices[] = {
+</span><span class='line'>  -1.0, 1.0, 0.0,     // Top left
+</span><span class='line'>  -1.0, -1.0, 0.0,    // Bottom left
+</span><span class='line'>  1.0, -1.0, 0.0,     // Bottom right
+</span><span class='line'>  1.0, 1.0, 0.0       // Top right
+</span><span class='line'>};</span></code></pre></td></tr></table></div></figure>
+
+
+<p>还记得为啥 Z 坐标要设成 -6.0 吗？因为我们的“相机”在 (0.0, 0.0, 0.0) 位置，所以我们得把物体往屏幕后方放。而现在我们准备用 glTranslatef() 来把它们往后放，而不再是在顶点数组里写死。</p>
+
+<p>接下来我们要告诉 OpenGL 要移动的是啥：是投影（世界视角）还是物体（世界中的模型）。在这个例子中，我们要移动的是三角形和正方形，所以来和 OpenGL 打声招呼吧。在 glClear() 下面调用如下函数：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+</span><span class='line'>glMatrixMode(GL_MODELVIEW);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>glMatrixMode 告诉 OpenGL 我们呆会儿要改变的是我们的顶点数组而不是投影。在 setupView 方法中，我们也调过这个函数，不过那边传的是 GL_PROJECTION 参数。我们之前说过 OpenGL 是个“状态”机，所以它会一直记得之前的“状态”，直到下一次改变状态为止。在调用 glMatrixMode(GL_MODELVIEW) 之间我们的<strong>模型模式</strong>一直是 GL_PROJECTION。现在我们把它改成 GL_MODELVIEW，那么直到下次我们再做改变，它会一直保持 GL_MODELVIEW 这个值。</p>
+
+<p>其实如果我们追求最高性能的话我们可以把这个调用放到 setupView 的末尾。不过在这个教程里就别那么认真了，古话说得好，认真你就输了……</p>
+
+<p>对，我确实没讲过投影模式下的 OpenGL ES，所以上面的话如果你听不懂也别在意。我们现在学的目的就在于把物体画在屏幕上，然后不断去折腾它们。</p>
+
+<p>把画三角形部分的注释去掉：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glVertexPointer(3, GL_FLOAT, 0, triangleVertices);
+</span><span class='line'>glEnableClientState(GL_VERTEX_ARRAY);
+</span><span class='line'>glDrawArrays(GL_TRIANGLES, 0, 3);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在这三行代码前面，加上两行新的代码：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glLoadIdentity();
+</span><span class='line'>glTranslatef(-1.5, 0.0, -6.0);
+</span><span class='line'>glVertexPointer(3, GL_FLOAT, 0, triangleVertices);
+</span><span class='line'>glEnableClientState(GL_VERTEX_ARRAY);
+</span><span class='line'>glDrawArrays(GL_TRIANGLES, 0, 3);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>glLoadIdentity() 这个函数可以让所有的变换都复位。如果我们不调这个函数的话，glTranslatef() 就会不停地的把物体往左、往后移，直把它们移出屏幕外面。其实有更好的方法可以代替 glLoadIdentity() 的，不过这个留到后面再说吧。</p>
+
+<p>接下来就是用来变身，呃，变换的方法啦。</p>
+
+<p>我们的 glTranslatef() 接受三个参数：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glTranslatef(GLfloat xtrans, GLfloat ytrans, GLfloat Ztrans);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>来，再来复习一遍之前我画的那张 3D 世界的图吧。</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/0301.jpg" alt="0301.jpg" title="0301.jpg" border="0" width="456" height="400"></p>
+
+<p>记住，“相机”的位置在 (0.0, 0.0, 0.0)。所以我们实际调用的时候传的参数分别是：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>xtrans = -1.5
+</span><span class='line'>ytrans =  0.0
+</span><span class='line'>ztrans = -6.0</span></code></pre></td></tr></table></div></figure>
+
+
+<p>还有一件事情不知道你记不记得，就是当我们在画正方形和三角形的时候，它们都是出现在屏幕正中的。所以如果现在我们还是按照之前的方法来画的话，它们就会重叠在一起。</p>
+
+<p>为了不让他们叠在一起，我把三角形的 X 坐标往左移 1.5。根据上面那张坐标系统的图，左边为负值，所以实际上就是 -1.5。</p>
+
+<p>而 Z 轴上的 -6.0 则代替了我们之前写在顶点数组里的 -6.0。</p>
+
+<p>于是我们就把三角形往左移了 1.5，往后移了 6.0。</p>
+
+<h3>继续看正方形</h3>
+
+
+<p>正方形部分的代码和三角形几乎是一样的：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glLoadIdentity();
+</span><span class='line'>glTranslatef(1.5, 0.0, -6.0);
+</span><span class='line'>glVertexPointer(3, GL_FLOAT, 0, squareVertices);
+</span><span class='line'>glEnableClientState(GL_VERTEX_ARRAY);
+</span><span class='line'>glDrawArrays(GL_TRIANGLE_FAN, 0, 4);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>只不过这一次我们给 glTranslatef() 中的 xtrans 变量传一个正值来把正方形往右移。</p>
+
+<p>点击“Build and Go”，铛铛铛铛：</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/0302.png" alt="0302.png" title="0302.png" border="0" width="386" height="742"></p>
+
+<p>当然 Y 坐标还是在屏幕中间的，物体的大小和之前也是一样的，只不过它们现在已经听话地并排显示了。</p>
+
+<h3>尝试一下</h3>
+
+
+<p>试着改变 glTranslatef() 中的 xtrans、 ytrans 和 ztrans 的值，看看会发生些什么。我曾经花过几个小时观察这些值的改变。同时你也可以看看把 glLoadIndentity() 注释掉会怎么样。</p>
+
+<h3>旋转</h3>
+
+
+<p>玩好之后把代码改回来，我们接着来看看旋转。目前我们只在 2D 中旋转，因为我们的物体就是 2D 的（虽然这是个 3D 的世界）。但是我向马克思发誓后面我们会画出真正的 3D 物体来的，也让它们在 3D 中转起来，对，你猜到了，我们还会给它加上纹理的……</p>
+
+<p>其实旋转也很简单：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z); </span></code></pre></td></tr></table></div></figure>
+
+
+<p>看，用 OpenGL ，就是那么自信。首先你告诉它要转多少度，然后告诉它绕着哪个轴转。</p>
+
+<p>我会演示两种旋转。首先是静态的旋转，然后再让它们不停地旋转来产生动画效果。</p>
+
+<p>先弄个简单的旋转出来吧。转到 drawView 方法里加入下面的代码：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glLoadIdentity();
+</span><span class='line'>glTranslatef(-1.5, 0.0, -6.0);
+</span><span class='line'>glRotatef(45.0, 0.0, 0.0, 1.0);         // Add this line
+</span><span class='line'>glVertexPointer(3, GL_FLOAT, 0, triangleVertices);
+</span><span class='line'>glEnableClientState(GL_VERTEX_ARRAY);
+</span><span class='line'>glDrawArrays(GL_TRIANGLES, 0, 3);
+</span><span class='line'>glLoadIdentity();
+</span><span class='line'>glTranslatef(1.5, 0.0, -6.0);
+</span><span class='line'>glRotatef(45.0, 0.0, 0.0, 1.0);         // Add this line
+</span><span class='line'>glVertexPointer(3, GL_FLOAT, 0, squareVertices);
+</span><span class='line'>glEnableClientState(GL_VERTEX_ARRAY);
+</span><span class='line'>glDrawArrays(GL_TRIANGLE_FAN, 0, 4);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们让三角形和正方形沿着 Z 轴转了 45º。看到传给 Z 的那个 1.0 吗？这告诉 OpenGL 我们的物体需要绕着 Z 轴转动。</p>
+
+<p>点下“Build and Run”：</p>
+
+<p><img src="http://codeleaks.files.wordpress.com/2010/08/03031.jpg" alt="0303.jpg" title="0303.jpg" border="0" width="365" height="216"></p>
+
+<p>绕着 Z 旋转产生了一个“自转”的效果——就像我们站在汽车侧面看着轮胎转动一样。</p>
+
+<p>沿着 X 轴转就好像在汽车的正前方看轮胎转，而沿着 Y 轴转就好像司机打了个方向盘以免撞上你（希望如此吧！）时轮胎的转动。如果你真搞不懂那也别纠结，我们下个例子可以让你看明白旋转是怎么一回事。</p>
+
+<h3>动起来</h3>
+
+
+<p>为了让我们的物体不停地转动，我们需要在每画一帧的时候都去增加旋转角度。打开 EAGLView.h，加入这个变量：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>GLfloat rota;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>回到 EAGLView.m，在 initWithCoder 的末尾加入这个赋值语句：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>rota = 0.0;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其实我们就是加了个变量来保存当前旋转的角度。</p>
+
+<p>回到 drawView 中，在我们第一次调用 glLoadIndentity() 之前加入下面这行：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>rota += 0.5;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样，我们每画一次物体就把角度增加 0.5º。最后，改一下我们对 glRotatef() 的调用：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>glRotatef(rota, 0.0, 0.0, 1.0);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样我们的物体就动起来了，第一次画的时候它们转了 0.5º，第二次就是 1.0º。</p>
+
+<p>点下“Build and Run”，这就是我说的从侧面看轮胎的转动。</p>
+
+<h3>继续尝试</h3>
+
+
+<p>在今天的教程结束之前，我希望你们能动手改点代码，并且观察下我们的改动会带来些什么：</p>
+
+<ol>
+<li>改变旋转轴。把 Z 改成 0.0，然后轮流把 X 和 Y 改成 1.0，看看我们的物体分别是怎么转的。</li>
+    <li>把 1.0 改成 -1.0，看看它们是不是倒过来转了。</li>
+    <li>把 glRotatef() 中的 rota 改成 -rota，看看会发生什么？</li>
+</ol>
+
+
+<p>希望通过这样的尝试可以加深你对旋转的理解。以下是本次教程的完整代码：</p>
+
+<p><a href="https://dl.dropbox.com/s/wccr7b5un4aq8qx/AppleCoder-OpenGLES-03.zip?dl">AppleCoder-OpenGLES-03.zip</a></p>
+
+<p>我不知道你们是怎么想的，反正我看这些白色的物体是看腻味了。所以，下次我们要给它们上颜色了。</p>
+
+<p>那么，下次见咯。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/08/21/mac-os-%E4%B8%93%E7%94%A8%EF%BC%9A%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87-usb-%E7%BA%BF-ssh-%E5%88%B0%E4%BD%A0%E7%9A%84-ios-%E8%AE%BE%E5%A4%87/">Mac OS 专用：如何通过 USB 线 SSH 到你的 iOS 设备</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-08-21T00:00:00+08:00" pubdate data-updated="true">Aug 21<span>st</span>, 2010</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>本文在于教会大家如何使用，不在于解释原理, 方法源自于此：<a href="http://iphonedevwiki.net/index.php/SSH_Over_USB">SSH Over USB</a>。这里做了一个开机启动项方便大家使用
+1. 下载<a href="http://drp.ly/1zV69a">这里的</a>打包文件
+2. 解压，把 iPhoneSSH 文件夹放到任意合适位置，记住文件夹的路径
+<img style="display:block;margin-left:auto;margin-right:auto;" title="Screen shot 2010-08-21 at 10.05.37 PM.png" src="http://codeleaks.files.wordpress.com/2010/08/screen-shot-2010-08-21-at-10-05-37-pm1.png" border="0" alt="Screen shot 2010-08-21 at 10.05.37 PM.png" width="596" height="499">
+3. 打开 com.overboming.iphonessh.plist 文件，修改该文件中路径到刚才的地方，我这里放到的是 ~/code/ios/ 目录下，所以将 ProgramArguments 下的命令设置为</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>/Users/malic/code/ios/iphonessh/python-client/tcprelay.py
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img style="display:block;margin-left:auto;margin-right:auto;" title="Screen shot 2010-08-21 at 10.05.56 PM.png" src="http://codeleaks.files.wordpress.com/2010/08/screen-shot-2010-08-21-at-10-05-56-pm1.png" border="0" alt="Screen shot 2010-08-21 at 10.05.56 PM.png" width="579" height="458">
+4. 然后将 com.overboming.iphonessh.plist 放置到 ~/Library/LaunchAgents/ 目录下
+5. 重启系统（或者可以手动执行 plist 中输入的命令）后插入任何装过 OpenSSH 的 iOS 设备，就可以在命令行中通过</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -l root -p 2222 localhost
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>登入你的设备了，enjoy！
+ 
+<img style="display:block;margin-left:auto;margin-right:auto;" title="Screen shot 2010-08-21 at 10.06.07 PM.png" src="http://codeleaks.files.wordpress.com/2010/08/screen-shot-2010-08-21-at-10-06-07-pm1.png" border="0" alt="Screen shot 2010-08-21 at 10.06.07 PM.png" width="609" height="420">
+此外，还可以通过 Transmit 4 自带的将sftp mount为文件系统的功能将 iPhone 的整个文件系统 mount 为一个 Volume，非常方便，而且速度和比通过 Wireless 的方式快很多，也不用担心锁屏断线了 :)
+<img style="display:block;margin-left:auto;margin-right:auto;" title="Screen shot 2010-08-21 at 9.59.16 PM.png" src="http://codeleaks.files.wordpress.com/2010/08/screen-shot-2010-08-21-at-9-59-16-pm1.png" border="0" alt="Screen shot 2010-08-21 at 9.59.16 PM.png" width="402" height="205"><img style="display:block;margin-left:auto;margin-right:auto;" title="Screen shot 2010-08-21 at 10.06.15 PM.png" src="http://codeleaks.files.wordpress.com/2010/08/screen-shot-2010-08-21-at-10-06-15-pm1.png" border="0" alt="Screen shot 2010-08-21 at 10.06.15 PM.png" width="596" height="499"></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/08/19/%E8%AF%B4%E8%AF%B4-twitter-for-iphone-%E7%9A%84-n-%E5%AE%97-%E2%80%9C%E7%BD%AA%E2%80%9D/">说说 Twitter for iPhone 的N宗“罪”</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-08-19T00:00:00+08:00" pubdate data-updated="true">Aug 19<span>th</span>, 2010</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>本文要说些什么</h3>
+
+
+<p>自从 iOS 上最好的 Twitter 客户端 Tweetie 2 被 Twitter Inc. 收编成为官方客户端之后，整个舆论对其的评价瞬间从满是赞扬之声变为略有微词。 很多人对 Twitter for iPhone 到 Tweetie 的各种变化表示不满：图标，Retweet 方式，出现广告 (Promoted Tweet) ，奇怪的设置菜单位置等等。 本文不准备在这里讨论这些 Tweetie 变身为官方应用后招致不满的地方，而是要说说几个 Twitter for iPhone 从 Tweetie 时代起就固有的问题。
+ </p>
+
+<h3>Twitter API 调用问题</h3>
+
+
+<p>该问题可以说严重，也可以说无足轻重，但也足够严重到促使笔者写这篇文章，在所有 Twitter 客户端中目前只发现 Twitter for iPhone 有该问题。
+要了解该问题，首先要知道一些关于 Twitter API Limit 的背景知识，这在 Twitter 官方的 <a href="http://dev.twitter.com/pages/rate-limiting#rest" target="_blank">文档</a> 中写得非常清楚：</p>
+
+<ul style="color:#082d3f;background-image:initial;background-attachment:initial;background-color:#ffffff;font-size:14px;line-height:20px;list-style-type:none;margin:1em 0 1.5em 20px;padding:0;">
+<li style="background-image:url('http://s.twimg.com/a/1281662294/images/dev/bullet.png');background-attachment:initial;background-color:initial;background-position:0 6px;background-repeat:no-repeat no-repeat;margin:0;padding:0 0 0 15px;">Anonymous calls are based on the IP of the host and are permitted 150 requests per hour.</li>
+<li style="background-image:url('http://s.twimg.com/a/1281662294/images/dev/bullet.png');background-attachment:initial;background-color:initial;background-position:0 6px;background-repeat:no-repeat no-repeat;margin:0;padding:0 0 0 15px;">Basic Auth calls are permitted 150 requests per hour.</li>
+<li style="background-image:url('http://s.twimg.com/a/1281662294/images/dev/bullet.png');background-attachment:initial;background-color:initial;background-position:0 6px;background-repeat:no-repeat no-repeat;margin:0;padding:0 0 0 15px;">OAuth calls are permitted 350 requests per hour.</li>
+</ul>
+
+
+<p>也就是说：如果你的程序调用 Twitter search 的 API，比如直接在命令行中运行</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>curl http://search.twitter.com/search.json?q=@overboming </span></code></pre></td></tr></table></div></figure>
+
+
+<p>﻿对于这类无验证，无来头的匿名 API 访问， Twitter 限制了每个 IP 访问限制为 150 次/小时。还有已经快要被 Twitter 官方抛弃的 Basic Auth 方式，标准情况下的 Limit 也为150次每秒， 当然这个数字现在正在以星期为间隔慢慢减少中。
+在现在 Twitter 客户端普遍采用 XAuth 验证方式的环境下，几乎所有的客户端都会在发往 Twitter 的请求附带上已经获取到的 OAuth Header，下面是一个样例</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{'Authorization': '
+</span><span class='line'>    OAuth
+</span><span class='line'>    oauth_consumer_key="yqoymNTrS9ZDGsBnlFhIuw",
+</span><span class='line'>    oauth_nonce="K5weBUvRj%2FucL3SD8wBTcfIOlho%3D",
+</span><span class='line'>    oauth_signature="0pcaJEB2xUpA34Li6rVQ9IeqS6Y%3D",
+</span><span class='line'>    oauth_signature_method="HMAC-SHA1",
+</span><span class='line'>    oauth_timestamp="1281979736",
+</span><span class='line'>    oauth_token="28954840-cYnZ2T0RDissLVg8h4hOQ9SMom5pW2rAR7m2uCI",
+</span><span class='line'>    oauth_version="1.0"'}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对于这样的请求， twitter.com 会认出：哦，原来是你啊，欢迎回来。你要的东西在这里，你还剩下多少次 API 访问。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{'status': '200 OK', 'x-ratelimit-remaining': '329', ...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Twitter for iPhone 的第一宗 &#8220;罪&#8221; 即为在调用一些非帐号相关（即该请求无论由谁调用的结果都相同，不需要验证身份）的API时，会选择上文提到的第一种方法：API匿名调用。 Loren 这样的做法有它的一定道理，这些到底是一些无状态的 API，匿名是没有错的。 但是做出如此决定作者显然没有考虑很多用户在同一 IP 后的状况，如果有多个人在同一个出口 IP 访问 Twitter 的话，大家加起来访问这些 API 小时超过 150次 即为被网站无情地拒绝 :(
+<img style="display:block;margin-left:auto;margin-right:auto;" title="twitter_iphone_fail.PNG" src="http://codeleaks.files.wordpress.com/2010/08/twitter_iphone_fail.png" border="0" alt="twitter iphone fail" width="320" height="480">
+当然大家可以想象在IP地址泛滥的美帝，没有人会把这件事情当回事情，可是用 <a href="http://code.google.com/p/gfwinterceptor/">gfwinterceptor</a> 的同学们就会经常不可避免地遇到这种情况，因为 GAE 出口的IP数量到底有限，匿名的访问超上限的概率是十有八九。 如果 Twitter for iPhone 能够在发送所有请求时保证一致性地带上 Header，那样所有用户的 API Limit 都会单独分开，350次每小时的访问限制完全能满足正常的需求。目前看来，iOS 上的 Twitter 客户端中有此问题的仅此一家。类似的超上限的情况还会出现在在同一个出口IP内有大量 Twitter for iPhone用户时。
+ </p>
+
+<h3>较慢的载入速度</h3>
+
+
+<p>载入较慢的第一原因即为默认载入的 Timeline 数量有点过多，像 Echofon 这样异步离线加载过早的推是个提升启动速度的好办法。
+Tweetie 2 应该还是最早能够支持完整的 Navigation 痕迹记录的软件，在 iOS 4.0 带来的多任务原生的保留状态特性之后，这一拖慢速度的设计是否还显得很实用呢？ 大多数人访问 Twitter 的习惯经常包括在手机和计算机之间来来回回切换，在从计算机换回手机时我们真的很在乎之前追推留下的痕迹么？个人觉得这一特性在 4.0 上已经意义不大。
+ </p>
+
+<h3>漂亮背后的 Tweet 详细页面</h3>
+
+
+<p>我们在这里自己看一下 Twitter for iPhone 显示一条推详细信息的界面。很不错是吧，有图片的话会显示嵌入的图片，如果推带有 Geocode 会显示嵌入的小地图，一切都显得非常和谐。
+<img style="display:block;margin-left:auto;margin-right:auto;" title="tweet_detail_page.PNG" src="http://codeleaks.files.wordpress.com/2010/08/tweet_detail_page1.png" border="0" alt="tweet_detail_page.PNG" width="320" height="480">
+那么这一个像是详细信息的界面是如何实现的呢？按住推上的文字部分，会出现熟悉的放大镜，试着点击右上角的上下箭头反动前后的推，就会发现有些非常难受的地方：上下翻动的动画会先完成，但是显示的仍然是上一条的内容，过一小会应该显示的内容才会载入。
+至此答案就清楚了：作者 &#8220;偷懒&#8221; 地在这里使用了 Webview 来实现某条推详细信息的显示。如果说这种实现方法有什么缺点的话，就是一个字，慢。 作者在这里加入时间很长的翻动效果主要就是为了掩饰以后再切换显示的 html 页面的内容的方式给人以不一致的体验。在其它一些客户端，比如 echofon 里就没有该问题，翻动上下推都是瞬间的事情。</p>
+
+<h3>薄弱的 Twitter List 支持</h3>
+
+
+<p>善用List的人几乎会把它当作第二个 Timeline, Twitter for iPhone的List实现显然已经不能满足List重度用户的胃口。问题有两个：1. 没有List内容的本地缓存，每次都要去下载 2. 调用切换不便。相信贴上两张图就高下立分，上图为 TweetList，下图为 Twitter for iPhone。
+<img style="display:block;margin-left:auto;margin-right:auto;" title="tweet_list_list.jpg" src="http://codeleaks.files.wordpress.com/2010/08/tweet_list_list1.jpg" border="0" alt="tweet_list_list" width="320" height="480"><img style="display:block;margin-left:auto;margin-right:auto;" title="twitter_list.jpg" src="http://codeleaks.files.wordpress.com/2010/08/twitter_list1.jpg" border="0" alt="4897835628_445bdec89e-1.jpg" width="320" height="480"></p>
+
+<h3>开发者严重不给力</h3>
+
+
+<p>这点我就不多说了，心里还是希望Loren在加盟Twitter拿了不少股权以后，无论花了多少时间，能够拿出个像样的 Twitter for iPad 和 Tweetie for Mac 2. 其实如果从 App Store 整体角度来说，Twitter for iPhone 依旧是最好的免费客户端，且没有之一。我在这里说闲话也是纯属站着说话不腰疼，就这样吧。</p>
+</div>
+  
+  
+
+
+    </article>
+  
   <div class="pagination">
+    
+      <a class="prev" href="/blog/page/2/">&larr; Older</a>
     
     <a href="/blog/archives">Blog Archives</a>
     
@@ -76,6 +1927,26 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2011/03/02/send-notifications-with-netgrowl/">利用 netgrowl 向 Windows / Mac OS X 发送消息</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/01/18/what-test-strings-do-programmers-print/">当程序员打印测试字符串时，他们打印些什么？</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2010/10/19/change-caps-lock-state-by-software/">软件修改Caps Lock状态</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2010/09/19/the-mysterious-cfnetwork-bogus-url/">神秘的 CFNETWORK_BOGUS_URL</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2010/08/26/opengl-es-06-objects-in-3d/">OpenGL ES 06 - 3D 中的物体</a>
+      </li>
     
   </ul>
 </section>
@@ -91,7 +1962,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2011 - Your Name -
+  Copyright &copy; 2012 - Your Name -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

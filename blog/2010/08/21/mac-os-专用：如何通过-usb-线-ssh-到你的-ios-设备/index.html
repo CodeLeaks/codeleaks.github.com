@@ -1,0 +1,245 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Mac OS 专用：如何通过 USB 线 SSH 到你的 iOS 设备 - My Octopress Blog</title>
+  <meta name="author" content="Your Name">
+
+  
+  <meta name="description" content="本文在于教会大家如何使用，不在于解释原理, 方法源自于此：SSH Over USB。这里做了一个开机启动项方便大家使用
+1. 下载这里的打包文件
+2. 解压，把 iPhoneSSH 文件夹放到任意合适位置，记住文件夹的路径 3. 打开 com.overboming.iphonessh.plist &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://CodeLeaks.github.com/blog/2010/08/21/mac-os-%E4%B8%93%E7%94%A8%EF%BC%9A%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87-usb-%E7%BA%BF-ssh-%E5%88%B0%E4%BD%A0%E7%9A%84-ios-%E8%AE%BE%E5%A4%87">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="My Octopress Blog" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">My Octopress Blog</a></h1>
+  
+    <h2>A blogging framework for hackers.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:CodeLeaks.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Mac OS 专用：如何通过 USB 线 SSH 到你的 iOS 设备</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-08-21T00:00:00+08:00" pubdate data-updated="true">Aug 21<span>st</span>, 2010</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>本文在于教会大家如何使用，不在于解释原理, 方法源自于此：<a href="http://iphonedevwiki.net/index.php/SSH_Over_USB">SSH Over USB</a>。这里做了一个开机启动项方便大家使用
+1. 下载<a href="http://drp.ly/1zV69a">这里的</a>打包文件
+2. 解压，把 iPhoneSSH 文件夹放到任意合适位置，记住文件夹的路径
+<img style="display:block;margin-left:auto;margin-right:auto;" title="Screen shot 2010-08-21 at 10.05.37 PM.png" src="http://codeleaks.files.wordpress.com/2010/08/screen-shot-2010-08-21-at-10-05-37-pm1.png" border="0" alt="Screen shot 2010-08-21 at 10.05.37 PM.png" width="596" height="499">
+3. 打开 com.overboming.iphonessh.plist 文件，修改该文件中路径到刚才的地方，我这里放到的是 ~/code/ios/ 目录下，所以将 ProgramArguments 下的命令设置为</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>/Users/malic/code/ios/iphonessh/python-client/tcprelay.py
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img style="display:block;margin-left:auto;margin-right:auto;" title="Screen shot 2010-08-21 at 10.05.56 PM.png" src="http://codeleaks.files.wordpress.com/2010/08/screen-shot-2010-08-21-at-10-05-56-pm1.png" border="0" alt="Screen shot 2010-08-21 at 10.05.56 PM.png" width="579" height="458">
+4. 然后将 com.overboming.iphonessh.plist 放置到 ~/Library/LaunchAgents/ 目录下
+5. 重启系统（或者可以手动执行 plist 中输入的命令）后插入任何装过 OpenSSH 的 iOS 设备，就可以在命令行中通过</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -l root -p 2222 localhost
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>登入你的设备了，enjoy！
+ 
+<img style="display:block;margin-left:auto;margin-right:auto;" title="Screen shot 2010-08-21 at 10.06.07 PM.png" src="http://codeleaks.files.wordpress.com/2010/08/screen-shot-2010-08-21-at-10-06-07-pm1.png" border="0" alt="Screen shot 2010-08-21 at 10.06.07 PM.png" width="609" height="420">
+此外，还可以通过 Transmit 4 自带的将sftp mount为文件系统的功能将 iPhone 的整个文件系统 mount 为一个 Volume，非常方便，而且速度和比通过 Wireless 的方式快很多，也不用担心锁屏断线了 :)
+<img style="display:block;margin-left:auto;margin-right:auto;" title="Screen shot 2010-08-21 at 9.59.16 PM.png" src="http://codeleaks.files.wordpress.com/2010/08/screen-shot-2010-08-21-at-9-59-16-pm1.png" border="0" alt="Screen shot 2010-08-21 at 9.59.16 PM.png" width="402" height="205"><img style="display:block;margin-left:auto;margin-right:auto;" title="Screen shot 2010-08-21 at 10.06.15 PM.png" src="http://codeleaks.files.wordpress.com/2010/08/screen-shot-2010-08-21-at-10-06-15-pm1.png" border="0" alt="Screen shot 2010-08-21 at 10.06.15 PM.png" width="596" height="499"></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Your Name</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-08-21T00:00:00+08:00" pubdate data-updated="true">Aug 21<span>st</span>, 2010</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/mac/'>Mac</a>, <a class='category' href='/blog/categories/iphone/'>iPhone</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://CodeLeaks.github.com/blog/2010/08/21/mac-os-%E4%B8%93%E7%94%A8%EF%BC%9A%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87-usb-%E7%BA%BF-ssh-%E5%88%B0%E4%BD%A0%E7%9A%84-ios-%E8%AE%BE%E5%A4%87/" data-via="" data-counturl="http://CodeLeaks.github.com/blog/2010/08/21/mac-os-%E4%B8%93%E7%94%A8%EF%BC%9A%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87-usb-%E7%BA%BF-ssh-%E5%88%B0%E4%BD%A0%E7%9A%84-ios-%E8%AE%BE%E5%A4%87/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2010/08/19/%E8%AF%B4%E8%AF%B4-twitter-for-iphone-%E7%9A%84-n-%E5%AE%97-%E2%80%9C%E7%BD%AA%E2%80%9D/" title="Previous Post: 说说 Twitter for iPhone 的N宗“罪”">&laquo; 说说 Twitter for iPhone 的N宗“罪”</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2010/08/21/opengl-es-03-transformations/" title="next Post: OpenGL ES 03 - 变换">OpenGL ES 03 - 变换 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2011/03/02/send-notifications-with-netgrowl/">利用 netgrowl 向 Windows / Mac OS X 发送消息</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/01/18/what-test-strings-do-programmers-print/">当程序员打印测试字符串时，他们打印些什么？</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2010/10/19/change-caps-lock-state-by-software/">软件修改Caps Lock状态</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2010/09/19/the-mysterious-cfnetwork-bogus-url/">神秘的 CFNETWORK_BOGUS_URL</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2010/08/26/opengl-es-06-objects-in-3d/">OpenGL ES 06 - 3D 中的物体</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2012 - Your Name -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
